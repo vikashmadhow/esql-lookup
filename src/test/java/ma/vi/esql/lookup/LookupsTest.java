@@ -1,0 +1,50 @@
+package ma.vi.esql.lookup;
+
+import ma.vi.esql.database.Database;
+import ma.vi.esql.database.Postgresql;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.Result;
+import ma.vi.esql.parser.Parser;
+import ma.vi.esql.parser.query.Select;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+
+/**
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
+class LookupsTest extends DataTest {
+  @TestFactory
+  Stream<DynamicTest> lookupDirectLabel() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("delete t from t:a.b.T");
+                     con.exec("delete s from s:S");
+                     con.exec("insert into S(_id, a, b, i) values "
+                                  + "(newid(), 1, 0, '0115'),"
+                                  + "(newid(), 2, 9, '0164'),"
+                                  + "(newid(), 3, 8, '0992'),"
+                                  + "(newid(), 4, 7, '1063'),"
+                                  + "(newid(), 5, 6, '1511'),"
+                                  + "(newid(), 6, 5, '2219'),"
+                                  + "(newid(), 7, 4, '2434'),"
+                                  + "(newid(), 8, 3, '3211'),"
+                                  + "(newid(), 9, 2, '4532'),"
+                                  + "(newid(), 0, 1, '5811')");
+
+                     Result rs = con.exec("select i, lookuplabel(i, 'EnsicClass') from S order by a");
+                     printResult(rs, 20);
+                   }
+                 }));
+  }
+}

@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2021 Vikash Madhow
+ */
+
+/**
+ * ESQL lookup functionality as an extension.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
+
+buildscript {
+  repositories {
+    jcenter()
+    mavenCentral()
+  }
+}
+
+plugins {
+  id "java-library"
+  id "maven-publish"
+  id "signing"
+  id 'io.codearte.nexus-staging' version '0.22.0'
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  jcenter()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['src/main/java']
+    }
+    resources {
+      srcDirs = ['src/main/resources']
+    }
+  }
+  test {
+    java {
+      srcDirs = ['src/test/java']
+    }
+    resources {
+      srcDirs = ['src/test/resources']
+    }
+  }
+}
+
+dependencies {
+  implementation("com.vikmad:esql:latest.release")
+  implementation("com.vikmad:base:latest.release")
+
+  // Use JUnit test framework
+  testImplementation(platform('org.junit:junit-bom:5.7.0'))
+  testImplementation('org.junit.jupiter:junit-jupiter:5.7.0')
+  testImplementation("org.apache.commons:commons-lang3:3.9")
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
+}
+
+group = 'com.vikmad'
+archivesBaseName = 'esql-lookup'
+sourceCompatibility = JavaVersion.VERSION_14
+version = "0.2.1"
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+publishing {
+  repositories {
+    maven {
+      def releaseRepo = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+      def snapshotRepo = "https://oss.sonatype.org/content/repositories/snapshots/"
+      url = isReleaseVersion ? releaseRepo : snapshotRepo
+      credentials {
+        username = project.hasProperty('ossrhUsername') ? ossrhUsername : "Unknown user"
+        password = project.hasProperty('ossrhPassword') ? ossrhPassword : "Unknown password"
+      }
+    }
+  }
+
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      pom {
+        groupId = 'com.vikmad'
+        artifactId = 'esql-lookup'
+        name = "ESQL lookup functionality as an extension"
+        description = 'ESQL lookup functionality as an extension'
+        url = 'https://github.com/vikashmadhow/esql-lookup'
+        licenses {
+          license {
+            name = 'The Apache License, Version 2.0'
+            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+        developers {
+          developer {
+            id = "vikashmadhow"
+            name = "Vikash Madhow"
+            email = "vikash.madhow@gmail.com"
+            url = "http://vikmad.com"
+          }
+        }
+        scm {
+          url = 'https://github.com/vikashmadhow/esql-lookup'
+          connection = 'scm:https://github.com/vikashmadhow/esql-lookup.git'
+          developerConnection = 'scm:git://github.com/vikashmadhow/esql-lookup.git'
+        }
+      }
+    }
+  }
+}
+
+signing {
+  sign publishing.publications.mavenJava
+}
+
+tasks.withType(Sign) {
+  onlyIf { isReleaseVersion }
+}
+
+nexusStaging {
+  packageGroup = group
+  username = project.getProperty('ossrhUsername')
+  password = project.getProperty('ossrhPassword')
+}

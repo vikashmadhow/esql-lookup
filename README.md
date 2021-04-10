@@ -1,2 +1,2 @@
-# esql-lookup
-ESQL lookup functionality (code tables) as an extension
+# ESQL lookup functionality as an extension
+ESQL code definition and lookup functionality as an extension.

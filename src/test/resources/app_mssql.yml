@@ -1,0 +1,19 @@
+# Application test configuration
+system:
+  name: Explore_Test
+
+server:
+  port: 8080
+
+jvm:
+  parameters: ["-Xmx2048M", "-server", "-XX:-UseGCOverheadLimit"]
+  debugPort: 10021
+
+database:
+  product: ms_sql_server_2017
+  host: 127.0.0.1
+  port: 1433
+  name: explore
+  sys:
+    name: mssql
+    password: mssql
