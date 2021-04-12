@@ -9,5 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LookupLabel, JoinLabel macros rewritten.
 - LookupLabelFunction renamed to lookuplabelf.
 - Column names in Lookup tables shortened.
+- Lookup label tests passed.
+- Option to match by code, alt_code1 and alt_code2 added to lookuplabel macro.
+
 
 

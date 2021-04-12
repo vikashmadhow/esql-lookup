@@ -197,15 +197,15 @@ public class Lookups implements Extension {
                                               "        -- source side\n" +
                                               "        from_clause := from_clause || ' join \"_platform.lookup\".\"LookupValueLink\" lk' || link_index\n" +
                                               "                                   || ' on (v' || link_index || '._id=lk' || link_index\n" +
-                                              "                                   || '.source_lookup_value_id and ' || 'lk' || link_index\n" +
-                                              "                                   || '.lookup_link=''' || link_name || ''')';\n" +
+                                              "                                   || '.source_value_id and ' || 'lk' || link_index\n" +
+                                              "                                   || '.name=''' || link_name || ''')';\n" +
                                               "\n" +
                                               "        link_index := link_index + 1;\n" +
                                               "\n" +
                                               "        -- target side\n" +
                                               "        from_clause := from_clause || ' join \"_platform.lookup\".\"LookupValue\" v' || link_index\n" +
                                               "                                   || ' on (v' || link_index || '._id=lk' || (link_index - 1)\n" +
-                                              "                                   || '.target_lookup_value_id)';\n" +
+                                              "                                   || '.target_value_id)';\n" +
                                               "    end loop;\n" +
                                               "\n" +
                                               "    if coalesce(show_code, false)=coalesce(show_label, false) then\n" +
@@ -267,8 +267,8 @@ public class Lookups implements Extension {
             "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
             "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_value_id and lk0.name=@Link1)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_value_id\n" +
             "\n" +
             "   where v0.code=@Code;\n" +
             "  return @Result;\n" +
@@ -294,11 +294,11 @@ public class Lookups implements Extension {
             "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
             "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_value_id and lk0.name=@Link1)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_value_id and lk1.name=@Link2)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_value_id\n" +
             "\n" +
             "   where v0.code=@Code;\n" +
             "  return @Result;\n" +
@@ -325,14 +325,14 @@ public class Lookups implements Extension {
             "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
             "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_value_id and lk0.name=@Link1)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_value_id and lk1.name=@Link2)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_value_id and lk2.name=@Link3)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_value_id\n" +
             "\n" +
             "   where v0.code=@Code;\n" +
             "  return @Result;\n" +
@@ -360,17 +360,17 @@ public class Lookups implements Extension {
             "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
             "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_value_id and lk0.name=@Link1)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_value_id and lk1.name=@Link2)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_value_id and lk2.name=@Link3)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_lookup_value_id and lk3.lookup_link=@Link4)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_value_id and lk3.name=@Link4)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_value_id\n" +
             "\n" +
             "   where v0.code=@Code;\n" +
             "  return @Result;\n" +
@@ -399,20 +399,20 @@ public class Lookups implements Extension {
             "    from \"_platform.lookup\".\"LookupValue\" v0\n" +
             "    join \"_platform.lookup\".\"Lookup\" lookup on (v0.lookup_id=lookup._id and lookup.name=@Lookup)\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_lookup_value_id and lk0.lookup_link=@Link1)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk0 on (v0._id=lk0.source_value_id and lk0.name=@Link1)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v1 on v1._id=lk0.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_lookup_value_id and lk1.lookup_link=@Link2)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk1 on (v1._id=lk1.source_value_id and lk1.name=@Link2)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v2 on v2._id=lk1.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_lookup_value_id and lk2.lookup_link=@Link3)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk2 on (v2._id=lk2.source_value_id and lk2.name=@Link3)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v3 on v3._id=lk2.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_lookup_value_id and lk3.lookup_link=@Link4)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk3 on (v3._id=lk3.source_value_id and lk3.name=@Link4)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v4 on v4._id=lk3.target_value_id\n" +
             "\n" +
-            "    join \"_platform.lookup\".\"LookupValueLink\" lk4 on (v4._id=lk4.source_lookup_value_id and lk4.lookup_link=@Link5)\n" +
-            "    join \"_platform.lookup\".\"LookupValue\" v5 on v5._id=lk4.target_lookup_value_id\n" +
+            "    join \"_platform.lookup\".\"LookupValueLink\" lk4 on (v4._id=lk4.source_value_id and lk4.name=@Link5)\n" +
+            "    join \"_platform.lookup\".\"LookupValue\" v5 on v5._id=lk4.target_value_id\n" +
             "\n" +
             "   where v0.code=@Code;\n" +
             "  return @Result;\n" +
