@@ -1122,34 +1122,20 @@ public class DataTest {
                                 "  {" +
                                 "    name: 'LkS'," +
                                 "    description: 'LkS test table'," +
-                                "    tm1: (max(b) from LkS)," +
-                                "    tm2: a > b" +
+                                "    tm1: (max(b) from LkS)" +
                                 "  }, " +
                                 "  _id uuid not null," +
-                                "  a int {" +
+                                "  a string {" +
                                 "    m1: b > 5," +
-                                "    m2: 10," +
-                                "    m3: a != 0" +
+                                "    m2: 10, " +
+                                "    show_as: lookuplabel(a, 'EnsicSection')" +
                                 "  }," +
                                 "  b int {" +
                                 "    m1: b < 0" +
                                 "  }," +
-                                "  c=a+b {" +
-                                "    m1: a > 5," +
-                                "    m2: a + b," +
-                                "    m3: b > 5" +
-                                "  }," +
-                                "  d=b+c {" +
-                                "    m1: 10" +
-                                "  }," +
-                                "  e bool {" +
-                                "    m1: c" +
-                                "  }," +
+                                "  e bool," +
                                 "  f=(max(a) from LkS) {" +
                                 "    m1: (min(a) from LkS)" +
-                                "  }," +
-                                "  g=(distinct c from LkS where d>5) {" +
-                                "    m1: (min(a) from a.b.LkT)" +
                                 "  }," +
                                 "  h text[] {" +
                                 "    m1: 5" +
@@ -1168,30 +1154,21 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkT'," +
                     "    description: 'LkT test table'," +
-                    "    tm1: (max(b) from a.b.LkT)," +
-                    "    tm2: a > b" +
+                    "    tm1: (max(b) from a.b.LkT)" +
                     "  }, " +
                     "  _id uuid not null," +
-                    "  a int {" +
+                    "  a string {" +
                     "    m1: b > 5," +
-                    "    m2: 10," +
-                    "    m3: a != 0" +
+                    "    m2: 10 " +
                     "  }," +
                     "  b int {" +
                     "    m1: b < 0" +
                     "  }," +
-                    "  c=a+b {" +
-                    "    m1: a > 5," +
-                    "    m2: a + b," +
-                    "    m3: b > 5" +
-                    "  }," +
                     "  x int {" +
-                    "    x1: b > 5," +
-                    "    x2: a != 0" +
+                    "    x1: b > 5" +
                     "  }," +
                     "  y int {" +
-                    "    y1: b > 5," +
-                    "    y2: a != 0" +
+                    "    y1: b > 5" +
                     "  }," +
                     "  s_id uuid {" +
                     "    link_table: 'LkS', " +
@@ -1207,34 +1184,18 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkX'," +
                     "    description: 'LkX test table'," +
-                    "    tm1: (max(b) from a.b.LkX)," +
-                    "    tm2: a > b" +
+                    "    tm1: (max(b) from a.b.LkX)" +
                     "  }, " +
                     "  _id uuid not null," +
-                    "  a int {" +
-                    "    m1: b > 5," +
-                    "    m2: 10," +
-                    "    m3: a != 0" +
-                    "  }," +
+                    "  a string," +
                     "  b int {" +
                     "    m1: b < 0" +
-                    "  }," +
-                    "  c=a+b {" +
-                    "    m1: a > 5," +
-                    "    m2: a + b," +
-                    "    m3: b > 5" +
-                    "  }," +
-                    "  s_id uuid {" +
-                    "    link_table: 'LkS', " +
-                    "    link_table_code: '_id', " +
-                    "    link_table_label: 'a' " +
                     "  }," +
                     "  t_id uuid {" +
                     "    link_table: 'a.b.LkT', " +
                     "    link_table_code: '_id', " +
                     "    link_table_label: 'b' " +
                     "  }," +
-                    "  foreign key(s_id) references LkS(_id)," +
                     "  foreign key(t_id) references a.b.LkT(_id) on update cascade on delete cascade," +
                     "  primary key(_id)" +
                     ")");

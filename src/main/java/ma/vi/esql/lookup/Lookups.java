@@ -94,7 +94,7 @@ public class Lookups implements Extension {
           "create table _platform.lookup.LookupValue drop undefined({" +
           "  name: 'Lookup Value', " +
           "  description: 'The values in a lookup table'," +
-          "  validate_unique: [['lookup_id', 'code', 'lang']] " +
+          "  validate_unique: [['lookup_id', 'code', 'lang']], " +
           "  dependents: {" +
           "    links: {" +
           "      type: '_platform.lookup.LookupValueLink'," +

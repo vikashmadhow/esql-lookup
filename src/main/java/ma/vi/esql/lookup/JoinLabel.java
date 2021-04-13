@@ -99,19 +99,19 @@ public class JoinLabel extends Function implements Macro {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each"
                                        + "link. Only the source id was provided for one link.");
         }
-        String targetId = i.next().translate(ESQL);
+        String targetId = ((StringLiteral)i.next()).value(ESQL);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id and target id were provided for one link.");
         }
-        String label = i.next().translate(ESQL);
+        String label = ((StringLiteral)i.next()).value(ESQL);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id, target id and label were provided for one link.");
         }
-        String table = i.next().translate(ESQL);
+        String table = ((StringLiteral)i.next()).value(ESQL);
         links.add(new Link(arg, targetId, label, table));
       }
     }
@@ -204,7 +204,7 @@ public class JoinLabel extends Function implements Macro {
 
   static Expression<?> toColumnRef(Parser parser, Object expr, String qualifier) {
     Expression<?> e = expr instanceof String        ? parser.parseExpression((String)expr) :
-                      expr instanceof StringLiteral ? parser.parseExpression(((StringLiteral)expr).value) : (Expression<?>)expr;
+                      expr instanceof StringLiteral ? parser.parseExpression(((StringLiteral)expr).value(ESQL)) : (Expression<?>)expr;
     return qualifier == null ? e : qualify(e, qualifier, null, true);
   }
 }

@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-class LookupsTest extends DataTest {
+class LookupLabelTest extends DataTest {
   @TestFactory
   Stream<DynamicTest> lookupDirectLabel() {
     return Stream.of(databases)

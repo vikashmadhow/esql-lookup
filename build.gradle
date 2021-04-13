@@ -67,7 +67,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql-lookup'
 sourceCompatibility = JavaVersion.VERSION_14
-version = "0.2.1"
+version = "0.2.2"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

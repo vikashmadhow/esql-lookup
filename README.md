@@ -79,7 +79,7 @@ stored in the database):
 
   LookupValueLink containing links between countries, currencies and continents:
 
-  | Link name	 | Source value id | Target value id |       
+  | Link name  | Source value id | Target value id |       
   |------------|-----------------|-----------------|       
   | cty_to_cur | 1 (MU)          | 4 (MUR)         |     
   | cty_to_cur | 2 (US)          | 5 (USD)         |     
@@ -142,3 +142,19 @@ named arguments to control the value displayed:
   different tables. Default is '/'.
 * **last_to_first**: Shows the names from the link tables from the last linked 
   table to the first, if true, or otherwise, from the first to the last. Default is true.
+
+## Examples
+The following query:
+```
+  select name, country_code, 
+         country:lookuplabel(country_code, 'Country')
+         currency:lookuplabel(country_code, 'Country', 'Currency', show_last_only:=false, label_separator:=', ')
+    from com.example.Customer;
+```
+could produce something like this:
+```
+  |      name     | country_code |     country    |               currency                |
+  | ------------- | -------------|----------------|---------------------------------------|
+  | Vikash Madhow | MU           | MU - Mauritius | MU - Mauritius, MUR - Mauritian Rupee |
+  | Avish Madhow  | EN           | EN - England   | EN - England, GBP - Pound Sterling    |
+```

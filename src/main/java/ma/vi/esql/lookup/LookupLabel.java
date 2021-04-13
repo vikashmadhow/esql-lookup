@@ -120,7 +120,7 @@ public class LookupLabel extends Function implements Macro {
       } else if (lookup == null) {
         lookup = arg;
       } else {
-        links.add(arg.translate(ESQL));
+        links.add(((StringLiteral)arg).value(ESQL));
       }
     }
     if (code == null) {
