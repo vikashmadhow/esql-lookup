@@ -34,7 +34,7 @@ import static ma.vi.esql.parser.Translatable.Target.ESQL;
  * <p>
  * <code>lookuplabel(code, X)</code> will get the label corresponding to code
  * from a lookup table named X. A variable number of named links can be supplied
- * to find linked valued. E.g. <code>label(code, X, Y, Z)</code> will find the
+ * to find linked valued. E.g. <code>lookuplabel(code, X, Y, Z)</code> will find the
  * code in lookup X, follow its link to Y and then Z and return the label for
  * the latter.
  * </p>

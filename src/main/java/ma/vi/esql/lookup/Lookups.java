@@ -35,7 +35,7 @@ public class Lookups implements Extension {
           "    links: {" +
           "      type: '_platform.lookup.LookupLink'," +
           "      referred_by: 'source_lookup_id'," +
-          "      label: 'Lookup links'" +
+          "      label: 'Lookup Links'" +
           "    }" +
           "  }" +
           "}," +
@@ -95,6 +95,13 @@ public class Lookups implements Extension {
           "  name: 'Lookup Value', " +
           "  description: 'The values in a lookup table'," +
           "  validate_unique: [['lookup_id', 'code', 'lang']] " +
+          "  dependents: {" +
+          "    links: {" +
+          "      type: '_platform.lookup.LookupValueLink'," +
+          "      referred_by: 'source_value_id'," +
+          "      label: 'Lookup Value Links'" +
+          "    }" +
+          "  }" +
           "}, " +
 
           "_id uuid not null, " +
