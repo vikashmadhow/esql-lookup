@@ -67,10 +67,10 @@ stored in the database):
    
   |  id  |  lookup_id   | code  |  label                 |
   |------|--------------|-------|------------------------|                     
-  |  1   |  1           | MUR   |  Mauritius             |                         
+  |  1   |  1           | MU    |  Mauritius             |                         
   |  2   |  1           | US    |  United States         |                             
   |  3   |  1           | CN    |  China                 |                     
-  |  4   |  2           | MU    |  Mauritian Rupee       |                               
+  |  4   |  2           | MUR   |  Mauritian Rupee       |                               
   |  5   |  2           | USD   |  United States Dollar  |                                     
   |  6   |  2           | RMB   |  Chinese Yuan          |                             
   |  7   |  3           | AF    |  Africa                |                       
