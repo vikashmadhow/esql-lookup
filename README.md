@@ -33,7 +33,7 @@ values.
 
 The following schema shows the tables and their relationships:
 ```
-            target
+           target
        +----------------------------+
        v                            |
 +-----------------+   source   +-----------------+

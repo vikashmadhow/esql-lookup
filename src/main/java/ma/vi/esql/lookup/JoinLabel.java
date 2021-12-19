@@ -6,12 +6,14 @@ package ma.vi.esql.lookup;
 
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.function.Function;
-import ma.vi.esql.parser.*;
-import ma.vi.esql.parser.expression.*;
-import ma.vi.esql.parser.query.JoinTableExpr;
-import ma.vi.esql.parser.query.SingleTableExpr;
-import ma.vi.esql.parser.query.TableExpr;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
+import ma.vi.esql.syntax.query.JoinTableExpr;
+import ma.vi.esql.syntax.query.SingleTableExpr;
+import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,8 +22,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static ma.vi.base.string.Strings.random;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
-import static ma.vi.esql.parser.expression.ColumnRef.qualify;
+import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 
 /**
  * <p>
@@ -58,10 +60,10 @@ public class JoinLabel extends Function implements Macro {
   }
 
   @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     FunctionCall call = (FunctionCall)esql;
     Context ctx = call.context;
-    List<Expression<?>> arguments = call.arguments();
+    List<Expression<?, ?>> arguments = call.arguments();
 
     if (arguments.size() < 4) {
       throw new TranslationException("joinlabel needs at least 4 arguments: "
@@ -76,18 +78,17 @@ public class JoinLabel extends Function implements Macro {
      * Load arguments
      */
     List<Link> links = new ArrayList<>();
-    boolean showLastOnly = false;                                         // show only the last element (last linked foreign table) of the join.
-    Expression<?> labelSeparator = new StringLiteral(ctx, "' / '"); // the separator to use between labels from different table (joins).
-    boolean lastToFirst = true;                                           // show labels last to first (or first to last if false).
+    boolean showLastOnly = false;                                             // show only the last element (last linked foreign table) of the join.
+    Expression<?, ?> labelSeparator = new StringLiteral(ctx, "' / '");  // the separator to use between labels from different table (joins).
+    boolean lastToFirst = true;                                               // show labels last to first (or first to last if false).
 
-    Iterator<Expression<?>> i = arguments.iterator();
+    Iterator<Expression<?, ?>> i = arguments.iterator();
     while (i.hasNext()) {
-      Expression<?> arg = i.next();
-      if (arg instanceof NamedArgument) {
-        NamedArgument namedArg = (NamedArgument)arg;
+      Expression<?, ?> arg = i.next();
+      if (arg instanceof NamedArgument namedArg) {
         switch (namedArg.name()) {
-          case "show_last_only"  -> showLastOnly = getBooleanParam(namedArg, "show_last_only");
-          case "last_to_first"   -> lastToFirst = getBooleanParam(namedArg, "last_to_first");
+          case "show_last_only"  -> showLastOnly = getBooleanParam(namedArg, "show_last_only", path);
+          case "last_to_first"   -> lastToFirst = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator" -> labelSeparator = namedArg.arg();
           default                -> throw new TranslationException("Invalid named argument in joinlabel: " + namedArg.name());
         }
@@ -96,22 +97,22 @@ public class JoinLabel extends Function implements Macro {
          * link arguments consist of 3 parts: the id expression, the name expression and the target table
          */
         if (!i.hasNext()) {
-          throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each"
+          throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id was provided for one link.");
         }
-        String targetId = ((StringLiteral)i.next()).value(ESQL);
+        String targetId = ((StringLiteral)i.next()).value(ESQL, path);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id and target id were provided for one link.");
         }
-        String label = ((StringLiteral)i.next()).value(ESQL);
+        String label = ((StringLiteral)i.next()).value(ESQL, path);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id, target id and label were provided for one link.");
         }
-        String table = ((StringLiteral)i.next()).value(ESQL);
+        String table = ((StringLiteral)i.next()).value(ESQL, path);
         links.add(new Link(arg, targetId, label, table));
       }
     }
@@ -143,10 +144,10 @@ public class JoinLabel extends Function implements Macro {
     Link link = linkIter.next();
 
     Parser parser = new Parser(ctx.structure);
-    Expression<?> firstSourceId = link.sourceId;
+    Expression<?, ?> firstSourceId = link.sourceId;
     String fromAlias = unique + alias;
-    Expression<?> firstTargetId = toColumnRef(parser, link.targetId, fromAlias);
-    Expression<?> value = toColumnRef(parser, link.labelColumn, fromAlias);
+    Expression<?, String> firstTargetId = toColumnRef(parser, link.targetId, fromAlias, path);
+    Expression<?, String> value = toColumnRef(parser, link.labelColumn, fromAlias, path);
     TableExpr from = new SingleTableExpr(ctx, link.targetTable, fromAlias);
 
     while (linkIter.hasNext()) {
@@ -154,57 +155,57 @@ public class JoinLabel extends Function implements Macro {
       String toAlias = unique + alias;
 
       link = linkIter.next();
-      from = new JoinTableExpr(ctx,
-                               from, null,
+      from = new JoinTableExpr(ctx, null, from,
                                new SingleTableExpr(ctx, link.targetTable, toAlias),
                                new Equality(ctx,
-                                            toColumnRef(parser, link.sourceId, fromAlias),
-                                            toColumnRef(parser, link.targetId, toAlias)));
+                                            toColumnRef(parser, link.sourceId, fromAlias, path),
+                                            toColumnRef(parser, link.targetId, toAlias, path)));
 
-      Expression<?> label = toColumnRef(parser, link.labelColumn, toAlias);
+      Expression<?, String> label = toColumnRef(parser, link.labelColumn, toAlias, path);
       value = showLastOnly ? label :
               lastToFirst  ? new Concatenation(ctx, asList(label, labelSeparator, value)) :
                              new Concatenation(ctx, asList(value, labelSeparator, label));
       fromAlias = toAlias;
     }
-    call.parent.replaceWith(
-        name,
-        new SelectExpression(ctx,
-                             new SelectBuilder(ctx)
-                                 .column(value, null)
-                                 .from(from)
-                                 .where(new Equality(ctx, firstTargetId, firstSourceId))
-                                 .orderBy(firstTargetId, "asc")
-                                 .limit("1")
-                                 .build()));
-    return true;
+    return new SelectExpression(ctx, new SelectBuilder(ctx).column(value, null)
+                                                           .from(from)
+                                                           .where(new Equality(ctx, firstTargetId, firstSourceId))
+                                                           .orderBy(firstTargetId, "asc")
+                                                           .limit("1")
+                                                           .build());
   }
 
   private static class Link {
-    public Link(Expression<?> sourceId, String targetId, String labelColumn, String targetTable) {
+    public Link(Expression<?, ?> sourceId, String targetId, String labelColumn, String targetTable) {
       this.sourceId = sourceId;
       this.targetId = targetId;
       this.labelColumn = labelColumn;
       this.targetTable = targetTable;
     }
 
-    public final Expression<?> sourceId;
+    public final Expression<?, ?> sourceId;
     public final String targetId;
     public final String labelColumn;
     public final String targetTable;
   }
 
-  static boolean getBooleanParam(NamedArgument namedArg, String argName) {
-    Object value = namedArg.arg().value(null);
+  static boolean getBooleanParam(NamedArgument namedArg,
+                                 String argName,
+                                 EsqlPath path) {
+    Object value = namedArg.arg().value(null, path);
     if (value != null && !(value instanceof Boolean)) {
       throw new TranslationException(argName + " must be a boolean value (" + namedArg.arg() + " was provided)");
     }
     return value != null && (Boolean)value;
   }
 
-  static Expression<?> toColumnRef(Parser parser, Object expr, String qualifier) {
-    Expression<?> e = expr instanceof String        ? parser.parseExpression((String)expr) :
-                      expr instanceof StringLiteral ? parser.parseExpression(((StringLiteral)expr).value(ESQL)) : (Expression<?>)expr;
-    return qualifier == null ? e : qualify(e, qualifier, null, true);
+  static Expression<?, String> toColumnRef(Parser   parser,
+                                           Object   expr,
+                                           String   qualifier,
+                                           EsqlPath path) {
+    Expression<?, String> e = expr instanceof String s        ? parser.parseExpression(s)
+                            : expr instanceof StringLiteral s ? parser.parseExpression(s.value(ESQL, path))
+                            : (Expression<?, String>)expr;
+    return qualifier == null ? e : qualify(e, qualifier, true);
   }
 }

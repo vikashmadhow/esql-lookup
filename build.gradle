@@ -10,7 +10,6 @@
 
 buildscript {
   repositories {
-    jcenter()
     mavenCentral()
   }
 }
@@ -25,7 +24,6 @@ plugins {
 repositories {
   mavenLocal()
   mavenCentral()
-  jcenter()
 }
 
 sourceSets {
@@ -66,8 +64,8 @@ test {
 
 group = 'com.vikmad'
 archivesBaseName = 'esql-lookup'
-sourceCompatibility = JavaVersion.VERSION_14
-version = "0.2.2"
+sourceCompatibility = JavaVersion.VERSION_16
+version = "0.2.3"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

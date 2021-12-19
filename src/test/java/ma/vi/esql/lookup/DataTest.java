@@ -8,8 +8,8 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.Program;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.Program;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.util.UUID;
@@ -33,16 +33,21 @@ public class DataTest {
       System.out.println(db.target());
       Parser p = new Parser(db.structure());
       try (EsqlConnection con = db.esql(db.pooledConnection())) {
-        try (Result rs = con.exec("select _id from _platform.lookup.Lookup l where name='EnsicSection'")) {
+        con.exec("delete l from l:_platform.lookup.LookupValueLink");
+        con.exec("delete l from l:_platform.lookup.LookupValue");
+        con.exec("delete l from l:_platform.lookup.LookupLink");
+        con.exec("delete l from l:_platform.lookup.Lookup");
+
+        try (Result rs = con.exec("select _id from _platform.lookup.Lookup l where name='TestSection'")) {
           if (!rs.next()) {
-            log.log(INFO, "Creating EnsicSection lookup");
+            log.log(INFO, "Creating TestSection lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _platform.lookup.Lookup(_id, name, description) " +
                                 "values(:id, :name, :description)"),
                      Param.of("id", id.toString()),
-                     Param.of("name", "EnsicSection"),
-                     Param.of("description", "Ensic Section"));
+                     Param.of("name", "TestSection"),
+                     Param.of("description", "Test Section"));
 
             con.exec(p.parse("insert into _platform.lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
                                 "(newid(), '" + id + "', 'A', 'en', 'Agriculture forestry and fishing'), " +
@@ -70,20 +75,20 @@ public class DataTest {
           }
         }
 
-        try (Result rs = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='EnsicDivision'"))) {
+        try (Result rs = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='TestDivision'"))) {
           if (!rs.next()) {
-            log.log(INFO, "Creating EnsicDivision lookup");
+            log.log(INFO, "Creating TestDivision lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _platform.lookup.Lookup(_id, name, description) " +
                                 "values(:id, :name, :description)"),
                    Param.of("id", id.toString()),
-                   Param.of("name", "EnsicDivision"),
-                   Param.of("description", "Ensic Division"));
+                   Param.of("name", "TestDivision"),
+                   Param.of("description", "Test Division"));
 
             con.exec(p.parse("insert into _platform.lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
-                                "values(newid(), 'EnsicSection', 'Ensic Section', '" + id + "', " +
-                                "       (select _id from _platform.lookup.Lookup where name='EnsicSection'))"));
+                                "values(newid(), 'TestSection', 'Test Section', '" + id + "', " +
+                                "       (select _id from _platform.lookup.Lookup where name='TestSection'))"));
 
             con.exec(p.parse("insert into _platform.lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
                                 "(newid(), '" + id + "', '01', 'en', 'Crop and animal production, hunting and related service activities'), " +
@@ -177,120 +182,120 @@ public class DataTest {
                                 "(newid(), '" + id + "', '9V', 'en', 'Other activities not adequately defined')"));
 
             String sectionId;
-            try (Result result = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='EnsicSection'"))) {
+            try (Result result = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='TestSection'"))) {
               result.next();
               sectionId = result.get(1).value.toString();
             }
 
-            log.log(INFO, "Linking EnsicDivision to EnsicSection");
+            log.log(INFO, "Linking TestDivision to TestSection");
 
             con.exec(p.parse("insert into _platform.lookup.LookupValueLink(_id, name, source_value_id, target_value_id) values" +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='01'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='A')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='02'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='A')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='03'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='A')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='05'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='06'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='07'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='08'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='09'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='10'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='11'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='12'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='13'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='14'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='15'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='16'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='17'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='18'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='19'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='20'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='21'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='22'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='23'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='24'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='25'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='26'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='27'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='28'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='29'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='30'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='31'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='32'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='33'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='35'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='D')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='36'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='37'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='38'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='39'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='41'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='F')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='42'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='F')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='43'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='F')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='45'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='G')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='46'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='G')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='47'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='G')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='49'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='50'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='51'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='52'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='53'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='55'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='I')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='56'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='I')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='58'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='59'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='60'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='61'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='62'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='63'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='64'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='K')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='65'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='K')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='66'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='K')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='68'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='L')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='69'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='70'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='71'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='72'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='73'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='74'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='75'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='77'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='78'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='79'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='80'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='81'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='82'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='84'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='O')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='85'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='P')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='86'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='Q')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='87'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='Q')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='88'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='Q')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='90'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='91'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='92'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='93'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='94'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='S')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='95'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='S')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='96'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='S')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='97'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='T')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='98'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='T')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='99'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='U')), " +
-                                "(newid(), 'EnsicSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='9V'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='V'))"));
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='01'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='A')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='02'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='A')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='03'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='A')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='05'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='06'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='07'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='08'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='09'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='B')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='10'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='11'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='12'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='13'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='14'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='15'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='16'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='17'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='18'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='19'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='20'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='21'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='22'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='23'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='24'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='25'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='26'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='27'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='28'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='29'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='30'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='31'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='32'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='33'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='C')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='35'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='D')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='36'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='37'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='38'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='39'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='E')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='41'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='F')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='42'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='F')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='43'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='F')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='45'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='G')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='46'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='G')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='47'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='G')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='49'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='50'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='51'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='52'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='53'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='H')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='55'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='I')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='56'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='I')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='58'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='59'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='60'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='61'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='62'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='63'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='J')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='64'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='K')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='65'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='K')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='66'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='K')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='68'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='L')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='69'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='70'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='71'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='72'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='73'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='74'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='75'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='M')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='77'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='78'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='79'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='80'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='81'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='82'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='N')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='84'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='O')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='85'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='P')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='86'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='Q')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='87'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='Q')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='88'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='Q')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='90'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='91'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='92'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='93'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='R')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='94'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='S')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='95'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='S')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='96'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='S')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='97'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='T')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='98'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='T')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='99'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='U')), " +
+                                "(newid(), 'TestSection', (select _id from _platform.lookup.LookupValue where lookup_id='" + id + "' and code='9V'), (select _id from _platform.lookup.LookupValue where lookup_id='" + sectionId + "' and code='V'))"));
           }
         }
 
-        try (Result rs = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='EnsicGroup'"))) {
+        try (Result rs = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='TestGroup'"))) {
           if (!rs.next()) {
-            log.log(INFO, "Creating EnsicGroup lookup");
+            log.log(INFO, "Creating TestGroup lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _platform.lookup.Lookup(_id, name, description) " +
                                 "values(:id, :name, :description)"),
                    Param.of("id", id.toString()),
-                   Param.of("name", "EnsicGroup"),
-                   Param.of("description", "Ensic group"));
+                   Param.of("name", "TestGroup"),
+                   Param.of("description", "Test group"));
 
             con.exec(p.parse("insert into _platform.lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
-                                "values(newid(), 'EnsicDivision', 'Ensic division', '" + id + "', " +
-                                "       (select _id from _platform.lookup.Lookup where name='EnsicDivision'))"));
+                                "values(newid(), 'TestDivision', 'Test division', '" + id + "', " +
+                                "       (select _id from _platform.lookup.Lookup where name='TestDivision'))"));
 
             con.exec(p.parse("insert into _platform.lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
                                 "(newid(), '" + id + "', '011', 'en', 'Growing of non-perennial crops'), " +
@@ -558,15 +563,15 @@ public class DataTest {
                                 "(newid(), '" + id + "', '990', 'en', 'Activities of extraterritorial organisations and bodies'), " +
                                 "(newid(), '" + id + "', '9V0', 'en', 'Other activities not adequately defined')"));
 
-            log.log(INFO, "Linking EnsicGroup to EnsicDivision");
+            log.log(INFO, "Linking TestGroup to TestDivision");
 
             String divisionId;
-            try (Result result = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='EnsicDivision'"))) {
+            try (Result result = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='TestDivision'"))) {
               result.next();
               divisionId = result.get(1).value.toString();
             }
             con.exec(p.parse("insert into _platform.lookup.LookupValueLink(_id, name, source_value_id, target_value_id) " +
-                                "select newid(), 'EnsicDivision', _id, " +
+                                "select newid(), 'TestDivision', _id, " +
                                 "       (select _id " +
                                 "          from target:_platform.lookup.LookupValue  " +
                                 "         where target.code=leftstr(lv.code, 2) " +
@@ -575,20 +580,20 @@ public class DataTest {
           }
         }
 
-        try (Result rs = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='EnsicClass'"))) {
+        try (Result rs = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='TestClass'"))) {
           if (!rs.next()) {
-            log.log(INFO, "Creating EnsicClass lookup");
+            log.log(INFO, "Creating TestClass lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _platform.lookup.Lookup(_id, name, description) " +
                                 "values(:id, :name, :description)"),
                    Param.of("id", id.toString()),
-                   Param.of("name", "EnsicClass"),
-                   Param.of("description", "Ensic class"));
+                   Param.of("name", "TestClass"),
+                   Param.of("description", "Test class"));
 
             con.exec(p.parse("insert into _platform.lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
-                                "values(newid(), 'EnsicGroup', 'Ensic Group', '" + id + "', " +
-                                "       (select _id from _platform.lookup.Lookup where name='EnsicGroup'))"));
+                                "values(newid(), 'TestGroup', 'Test Group', '" + id + "', " +
+                                "       (select _id from _platform.lookup.Lookup where name='TestGroup'))"));
 
             con.exec(p.parse("insert into _platform.lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
                                 "(newid(), '" + id + "', '0111', 'en', 'Growing of cereals, leguminous crops and oil seeds'), " +
@@ -1102,14 +1107,14 @@ public class DataTest {
                                 "(newid(), '" + id + "', '9900', 'en', 'Activities of extraterritorial organisations and bodies'), " +
                                 "(newid(), '" + id + "', '9V00', 'en', 'Other activities not adequately defined') "));
 
-            log.log(INFO, "Linking EnsicClass to EnsicGroup");
+            log.log(INFO, "Linking TestClass to TestGroup");
             String groupId;
-            try (Result result = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='EnsicGroup'"))) {
+            try (Result result = con.exec(p.parse("select _id from _platform.lookup.Lookup where name='TestGroup'"))) {
               result.next();
               groupId = result.get(1).value.toString();
             }
             con.exec(p.parse("insert into _platform.lookup.LookupValueLink(_id, name, source_value_id, target_value_id) " +
-                                "select newid(), 'EnsicGroup', _id, " +
+                                "select newid(), 'TestGroup', _id, " +
                                 "       (select _id " +
                                 "          from target:_platform.lookup.LookupValue  " +
                                 "         where target.code=leftstr(lv.code, 3) " +
@@ -1122,26 +1127,26 @@ public class DataTest {
                                 "  {" +
                                 "    name: 'LkS'," +
                                 "    description: 'LkS test table'," +
-                                "    tm1: (max(b) from LkS)" +
+                                "    tm1: (from LkS select max(b))" +
                                 "  }, " +
                                 "  _id uuid not null," +
                                 "  a string {" +
                                 "    m1: b > 5," +
                                 "    m2: 10, " +
-                                "    show_as: lookuplabel(a, 'EnsicSection')" +
+                                "    show_as: lookuplabel(a, 'TestSection')" +
                                 "  }," +
                                 "  b int {" +
                                 "    m1: b < 0" +
                                 "  }," +
                                 "  e bool," +
-                                "  f=(max(a) from LkS) {" +
-                                "    m1: (min(a) from LkS)" +
+                                "  f=(from LkS select max(a)) {" +
+                                "    m1: (from LkS select min(a))" +
                                 "  }," +
                                 "  h text[] {" +
                                 "    m1: 5" +
                                 "  }," +
                                 "  i string {" +
-                                "    label: lookuplabel(i, 'EnsicClass')" +
+                                "    label: lookuplabel(i, 'TestClass')" +
                                 "  }," +
                                 "  j int[], " +
                                 "  k interval, " +
@@ -1154,7 +1159,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkT'," +
                     "    description: 'LkT test table'," +
-                    "    tm1: (max(b) from a.b.LkT)" +
+                    "    tm1: (from a.b.LkT select max(b))" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a string {" +
@@ -1184,7 +1189,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkX'," +
                     "    description: 'LkX test table'," +
-                    "    tm1: (max(b) from a.b.LkX)" +
+                    "    tm1: (from a.b.LkX select max(b))" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a string," +
@@ -1205,7 +1210,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkY'," +
                     "    description: 'LkY test table'," +
-                    "    tm1: (max(b) from b.LkY)," +
+                    "    tm1: (from b.LkY select max(b))," +
                     "    tm2: a > b" +
                     "  }, " +
                     "  _id uuid not null," +
@@ -1254,7 +1259,7 @@ public class DataTest {
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
         System.out.print('|');
         for (int i = 0; i < rs.columns(); i++) {
-          System.out.print(rightPad(rs.column(i + 1).alias(), columnWidth) + '|');
+          System.out.print(rightPad(rs.column(i + 1).name(), columnWidth) + '|');
         }
         System.out.println();
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));

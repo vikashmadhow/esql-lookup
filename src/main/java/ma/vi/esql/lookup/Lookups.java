@@ -4,15 +4,15 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.EsqlConnection;
-import ma.vi.esql.parser.Parser;
+import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Set;
 
 import static java.lang.System.Logger.Level.INFO;
-import static ma.vi.esql.parser.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
+import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)

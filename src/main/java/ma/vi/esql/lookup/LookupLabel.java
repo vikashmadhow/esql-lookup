@@ -1,20 +1,21 @@
 /*
- * Copyright (c) 2020 Vikash Madhow
+ * Copyright (c) 2018-2021 Vikash Madhow
  */
 
 package ma.vi.esql.lookup;
 
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.function.Function;
-import ma.vi.esql.parser.Context;
-import ma.vi.esql.parser.Esql;
-import ma.vi.esql.parser.Macro;
-import ma.vi.esql.parser.TranslationException;
-import ma.vi.esql.parser.expression.*;
-import ma.vi.esql.parser.query.JoinTableExpr;
-import ma.vi.esql.parser.query.SingleTableExpr;
-import ma.vi.esql.parser.query.TableExpr;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.*;
+import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
+import ma.vi.esql.syntax.expression.literal.StringLiteral;
+import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.query.JoinTableExpr;
+import ma.vi.esql.syntax.query.SingleTableExpr;
+import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.lookup.JoinLabel.getBooleanParam;
-import static ma.vi.esql.parser.Translatable.Target.ESQL;
+import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 
 /**
  * <p>
@@ -68,10 +69,10 @@ public class LookupLabel extends Function implements Macro {
   }
 
   @Override
-  public boolean expand(String name, Esql<?, ?> esql) {
+  public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
     FunctionCall call = (FunctionCall)esql;
     Context ctx = call.context;
-    List<Expression<?>> arguments = call.arguments();
+    List<Expression<?, ?>> arguments = call.arguments();
 
     if (arguments.size() < 2) {
       throw new TranslationException("lookuplabel needs at least 2 arguments: "
@@ -83,26 +84,25 @@ public class LookupLabel extends Function implements Macro {
     /*
      * Load arguments included named arguments and links.
      */
-    Expression<?> code           = null;                                   // The code to search a label for.
-    Expression<?> lookup         = null;                                   // The lookup to which the code belongs to.
-    List<String>  links          = new ArrayList<>();                      // lookup links.
-    boolean       showCode       = true;                                   // show the code in the label or not.
-    boolean       showText       = true;                                   // show the text in the label or not.
-    Expression<?> codeSeparator  = new StringLiteral(ctx, "' - '");  // the separator to use between code and text in the label.
-    boolean       showLastOnly   = true;                                   // show only the last element (last linked foreign table) of the join.
-    Expression<?> labelSeparator = new StringLiteral(ctx, "' / '");  // the separator to use between labels from different table (joins).
-    boolean       lastToFirst    = true;                                   // show labels last to first (or first to last if false).
-    String        matchBy        = "code";                                 // Match by code, alt_code1 or alt_code2. Default is code.
+    Expression<?, ?> code           = null;                                   // The code to search a label for.
+    Expression<?, ?> lookup         = null;                                   // The lookup to which the code belongs to.
+    List<String>     links          = new ArrayList<>();                      // lookup links.
+    boolean          showCode       = true;                                   // show the code in the label or not.
+    boolean          showText       = true;                                   // show the text in the label or not.
+    Expression<?, ?> codeSeparator  = new StringLiteral(ctx, "' - '");  // the separator to use between code and text in the label.
+    boolean          showLastOnly   = true;                                   // show only the last element (last linked foreign table) of the join.
+    Expression<?, ?> labelSeparator = new StringLiteral(ctx, "' / '");  // the separator to use between labels from different table (joins).
+    boolean          lastToFirst    = true;                                   // show labels last to first (or first to last if false).
+    String           matchBy        = "code";                                 // Match by code, alt_code1 or alt_code2. Default is code.
 
-    for (Expression<?> arg: arguments) {
-      if (arg instanceof NamedArgument) {
-        NamedArgument namedArg = (NamedArgument)arg;
+    for (Expression<?, ?> arg: arguments) {
+      if (arg instanceof NamedArgument namedArg) {
         switch (namedArg.name()) {
-          case "show_code"        -> showCode = getBooleanParam(namedArg, "show_code");
-          case "show_text"        -> showText = getBooleanParam(namedArg, "show_text");
+          case "show_code"        -> showCode = getBooleanParam(namedArg, "show_code", path);
+          case "show_text"        -> showText = getBooleanParam(namedArg, "show_text", path);
           case "code_separator"   -> codeSeparator = namedArg.arg();
-          case "show_last_only"   -> showLastOnly = getBooleanParam(namedArg, "show_last_only");
-          case "last_to_first"    -> lastToFirst = getBooleanParam(namedArg, "last_to_first");
+          case "show_last_only"   -> showLastOnly = getBooleanParam(namedArg, "show_last_only", path);
+          case "last_to_first"    -> lastToFirst = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator"  -> labelSeparator = namedArg.arg();
           case "match_by"         -> matchBy = namedArg.arg().translate(ESQL);
           default                 -> throw new TranslationException("Invalid named argument in lookuplabel: " + namedArg.name() + "\n"
@@ -120,7 +120,7 @@ public class LookupLabel extends Function implements Macro {
       } else if (lookup == null) {
         lookup = arg;
       } else {
-        links.add(((StringLiteral)arg).value(ESQL));
+        links.add(((StringLiteral)arg).value(ESQL, path));
       }
     }
     if (code == null) {
@@ -151,23 +151,22 @@ public class LookupLabel extends Function implements Macro {
     String unique = random(10) + "_";
     String fromAlias = unique + alias;
     String lookupAlias = "lookup_" + unique;
-    Expression<?> value = label(ctx, showText, showCode, matchBy, "v" + fromAlias, codeSeparator);
+    Expression<?, String> value = label(ctx, showText, showCode, matchBy, "v" + fromAlias, codeSeparator);
 
     /*
      * from LookupValue v0
      * join Lookup l on v0.lookup_id=l._id and l.name=X
      */
-    TableExpr from = new JoinTableExpr(ctx,
+    TableExpr from = new JoinTableExpr(ctx, null,
                                        new SingleTableExpr(ctx, "_platform.lookup.LookupValue", "v" + fromAlias),
-                                       null,
                                        new SingleTableExpr(ctx, "_platform.lookup.Lookup", lookupAlias),
-                                       new LogicalAnd(ctx,
-                                                      new Equality(ctx,
-                                                                   new ColumnRef(ctx, "v" + fromAlias, "lookup_id"),
-                                                                   new ColumnRef(ctx, lookupAlias, "_id")),
-                                                      new Equality(ctx,
-                                                                   new ColumnRef(ctx, lookupAlias, "name"),
-                                                                   lookup)));
+                                       new And(ctx,
+                                               new Equality(ctx,
+                                                            new ColumnRef(ctx, "v" + fromAlias, "lookup_id"),
+                                                            new ColumnRef(ctx, lookupAlias, "_id")),
+                                               new Equality(ctx,
+                                                            new ColumnRef(ctx, lookupAlias, "name"),
+                                                            lookup)));
     for (String linkName: links) {
       alias++;
       String toAlias = unique + alias;
@@ -177,49 +176,45 @@ public class LookupLabel extends Function implements Macro {
        * join LookupValueLink lk1 on lk1.source_value_id=v0._id and lk1.name=link_name
        * join LookupValue      v1 on lk1.target_value_id=v1._id
        */
-      from = new JoinTableExpr(ctx, from, null,
+      from = new JoinTableExpr(ctx, null, from,
                                new SingleTableExpr(ctx, "_platform.lookup.LookupValueLink", "lk" + toAlias),
-                               new LogicalAnd(ctx,
-                                              new Equality(ctx,
-                                                           new ColumnRef(ctx, "lk" + toAlias, "source_value_id"),
-                                                           new ColumnRef(ctx, "v" + fromAlias, "_id")),
-                                              new Equality(ctx,
-                                                           new ColumnRef(ctx, "lk" + toAlias, "name"),
-                                                           new StringLiteral(ctx, linkName))));
-      from = new JoinTableExpr(ctx, from, null,
+                               new And(ctx,
+                                       new Equality(ctx,
+                                                    new ColumnRef(ctx, "lk" + toAlias, "source_value_id"),
+                                                    new ColumnRef(ctx, "v" + fromAlias, "_id")),
+                                       new Equality(ctx,
+                                                    new ColumnRef(ctx, "lk" + toAlias, "name"),
+                                                    new StringLiteral(ctx, linkName))));
+      from = new JoinTableExpr(ctx, null, from,
                                new SingleTableExpr(ctx, "_platform.lookup.LookupValue", "v" + toAlias),
                                new Equality(ctx,
                                             new ColumnRef(ctx, "lk" + toAlias, "target_value_id"),
                                             new ColumnRef(ctx, "v" + toAlias, "_id")));
 
-      Expression<?> label = label(ctx, showText, showCode, matchBy, "v" + toAlias, codeSeparator);
+      Expression<?, String> label = label(ctx, showText, showCode, matchBy, "v" + toAlias, codeSeparator);
       value = showLastOnly ? label :
               lastToFirst  ? new Concatenation(ctx, asList(label, labelSeparator, value)) :
                              new Concatenation(ctx, asList(value, labelSeparator, label));
       fromAlias = toAlias;
     }
-    call.parent.replaceWith(
-        name,
-        new SelectExpression(ctx,
-                             new SelectBuilder(ctx)
-                                 .column(value, null)
-                                 .from(from)
-                                 .where(new Equality(ctx,
-                                                     new ColumnRef(ctx, "v" + unique + '0', matchBy),
-                                                     code))
-                                 .orderBy(new IntegerLiteral(ctx, 1L), "asc")
-                                 .limit("1")
-                                 .build()));
-    return true;
+    return new SelectExpression(ctx, new SelectBuilder(ctx)
+                                           .column(value, null)
+                                           .from(from)
+                                           .where(new Equality(ctx,
+                                                               new ColumnRef(ctx, "v" + unique + '0', matchBy),
+                                                               code))
+                                           .orderBy(new IntegerLiteral(ctx, 1L), "asc")
+                                           .limit("1")
+                                           .build());
   }
 
-  private static Expression<?> label(Context ctx,
-                                     boolean showText,
-                                     boolean showCode,
-                                     String matchBy,
-                                     String alias,
-                                     Expression<?> codeSeparator) {
-    Expression<?> label;
+  private static Expression<?, String> label(Context ctx,
+                                             boolean showText,
+                                             boolean showCode,
+                                             String matchBy,
+                                             String alias,
+                                             Expression<?, ?> codeSeparator) {
+    Expression<?, String> label;
     if (!showText) {
       /*
        * Show code only

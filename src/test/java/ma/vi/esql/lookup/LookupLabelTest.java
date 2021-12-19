@@ -2,7 +2,7 @@ package ma.vi.esql.lookup;
 
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.parser.Parser;
+import ma.vi.esql.syntax.Parser;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -35,7 +35,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(i, 'EnsicClass') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass') from S order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -62,7 +62,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(i, 'EnsicClass', 'EnsicGroup') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass', 'TestGroup') from S order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -89,7 +89,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(i, 'EnsicClass', 'EnsicGroup', 'EnsicDivision', 'EnsicSection') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from S order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -116,7 +116,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(show_last_only:=false, i, 'EnsicClass', 'EnsicGroup', 'EnsicDivision', 'EnsicSection') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(show_last_only:=false, i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from S order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -146,7 +146,7 @@ class LookupLabelTest extends DataTest {
                      Result rs = con.exec(
                          "select i, " +
                              "lookuplabel(show_last_only:=false, last_to_first:=false, show_code:=true, show_text:=false," +
-                             "            i, 'EnsicClass', 'EnsicGroup', 'EnsicDivision', 'EnsicSection') " +
+                             "            i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') " +
                              "from S order by a");
                      printResult(rs, 20);
                    }

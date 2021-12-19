@@ -6,8 +6,6 @@ package ma.vi.esql.lookup;
 
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.parser.Parser;
-import ma.vi.esql.parser.modify.Insert;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -15,9 +13,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.UUID.randomUUID;
-import static ma.vi.esql.exec.Param.of;
-import static ma.vi.esql.parser.Parser.Rules.INSERT;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class JoinLabelTest extends DataTest {

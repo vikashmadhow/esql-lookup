@@ -6,16 +6,16 @@ package ma.vi.esql.lookup;
 
 import ma.vi.esql.function.Function;
 import ma.vi.esql.function.FunctionParameter;
-import ma.vi.esql.parser.Translatable;
-import ma.vi.esql.parser.expression.Expression;
-import ma.vi.esql.parser.expression.FunctionCall;
-import ma.vi.esql.type.Types;
+import ma.vi.esql.semantic.type.Types;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.FunctionCall;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static ma.vi.esql.parser.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.parser.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
+import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
 
 /**
  * Function to find the label for a code in a specified lookup, optionally
@@ -42,11 +42,11 @@ public class LookupLabelFunction extends Function {
   }
 
   @Override
-  public String translate(FunctionCall call, Translatable.Target target) {
-    List<Expression<?>> args = call.arguments();
+  public String translate(FunctionCall call, Target target, EsqlPath path) {
+    List<Expression<?, ?>> args = call.arguments();
 
-    Expression<?> code = args.get(0);
-    Expression<?> linkTable = args.get(1);
+    Expression<?, ?> code = args.get(0);
+    Expression<?, ?> linkTable = args.get(1);
     if (target == POSTGRESQL) {
       StringBuilder func = new StringBuilder(
           "_core.lookup_label((" +
@@ -55,10 +55,10 @@ public class LookupLabelFunction extends Function {
       String showCode = "true";
       String showText = "true";
       if (args.size() > 3) {
-        showCode = args.get(2).translate(target);
+        showCode = (String)args.get(2).translate(target);
       }
       if (args.size() > 4) {
-        showText = args.get(3).translate(target);
+        showText = (String)args.get(3).translate(target);
       }
       func.append(showCode).append(", ").append(showText);
       for (int i = 4; i < args.size(); i++) {
@@ -68,16 +68,16 @@ public class LookupLabelFunction extends Function {
       return func.toString();
 
     } else if (target == SQLSERVER) {
-      StringBuilder func = new StringBuilder('('
+      StringBuilder func = new StringBuilder("("
           + code.translate(target) + ", "
           + linkTable.translate(target) + ", ");
       String showCode = "1";
       String showText = "1";
       if (args.size() > 3) {
-        showCode = args.get(2).translate(target);
+        showCode = (String)args.get(2).translate(target);
       }
       if (args.size() > 4) {
-        showText = args.get(3).translate(target);
+        showText = (String)args.get(3).translate(target);
       }
       func.append(showCode).append(", ").append(showText);
       for (int i = 4; i < args.size(); i++) {
@@ -95,10 +95,10 @@ public class LookupLabelFunction extends Function {
       String showCode = "true";
       String showText = "true";
       if (args.size() > 3) {
-        showCode = args.get(2).translate(target);
+        showCode = (String)args.get(2).translate(target);
       }
       if (args.size() > 4) {
-        showText = args.get(3).translate(target);
+        showText = (String)args.get(3).translate(target);
       }
       func.append(showCode).append(", ").append(showText);
       for (int i = 4; i < args.size(); i++) {
