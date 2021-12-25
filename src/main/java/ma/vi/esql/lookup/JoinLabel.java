@@ -4,6 +4,7 @@
 
 package ma.vi.esql.lookup;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Types;
@@ -12,18 +13,18 @@ import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.query.JoinTableExpr;
+import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static ma.vi.base.string.Strings.random;
+import static ma.vi.esql.semantic.type.Type.unqualifiedName;
 import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
+import static ma.vi.esql.syntax.query.ColumnList.makeUnique;
 
 /**
  * <p>
@@ -138,21 +139,31 @@ public class JoinLabel extends Function implements Macro {
      *
      *      where  t1._id=bu_id
      */
-    int alias = 0;
-    String unique = "t" + random(10) + "_";
     Iterator<Link> linkIter = links.iterator();
     Link link = linkIter.next();
 
     Parser parser = new Parser(ctx.structure);
     Expression<?, ?> firstSourceId = link.sourceId;
-    String fromAlias = unique + alias;
+
+    QueryUpdate qu = path.ancestor(QueryUpdate.class);
+    Set<String> aliases = qu != null && qu.tables().exists()
+                        ? new HashSet<>(qu.tables().type(path.add(qu)).aliases())
+                        : new HashSet<>();
+    int aliasIndex = 1;
+    T2<String, Integer> uniqueName = makeUnique(unqualifiedName(link.targetTable),
+                                                aliases, aliasIndex, false);
+    String fromAlias = uniqueName.a;
+    aliasIndex = uniqueName.b;
+
     Expression<?, String> firstTargetId = toColumnRef(parser, link.targetId, fromAlias, path);
     Expression<?, String> value = toColumnRef(parser, link.labelColumn, fromAlias, path);
     TableExpr from = new SingleTableExpr(ctx, link.targetTable, fromAlias);
 
     while (linkIter.hasNext()) {
-      alias++;
-      String toAlias = unique + alias;
+      uniqueName = makeUnique(unqualifiedName(link.targetTable),
+                              aliases, aliasIndex, false);
+      String toAlias = uniqueName.a;
+      aliasIndex = uniqueName.b;
 
       link = linkIter.next();
       from = new JoinTableExpr(ctx, null, from,
@@ -170,8 +181,6 @@ public class JoinLabel extends Function implements Macro {
     return new SelectExpression(ctx, new SelectBuilder(ctx).column(value, null)
                                                            .from(from)
                                                            .where(new Equality(ctx, firstTargetId, firstSourceId))
-                                                           .orderBy(firstTargetId, "asc")
-                                                           .limit("1")
                                                            .build());
   }
 
@@ -206,6 +215,6 @@ public class JoinLabel extends Function implements Macro {
     Expression<?, String> e = expr instanceof String s        ? parser.parseExpression(s)
                             : expr instanceof StringLiteral s ? parser.parseExpression(s.value(ESQL, path))
                             : (Expression<?, String>)expr;
-    return qualifier == null ? e : qualify(e, qualifier, true);
+    return qualifier == null ? e : qualify(e, qualifier);
   }
 }

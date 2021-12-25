@@ -5,7 +5,7 @@ a table of code and labels such as a list of countries, currencies, cities, etc.
 which can be, additionally, linked among them. For instance, a city may be linked
 to the country that it's in and, in turn, the country can be linked to a continent
 and any international groupings that it belongs to. A lookup value can have any
-number of other values linking to it and similarly it may link to any number of 
+number of other values linking to it, and similarly it may link to any number of 
 other values, creating a directed graph.
 
 ## Using lookups in ESQL

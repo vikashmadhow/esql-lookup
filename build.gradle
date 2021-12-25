@@ -52,7 +52,7 @@ dependencies {
   // Use JUnit test framework
   testImplementation(platform('org.junit:junit-bom:5.7.0'))
   testImplementation('org.junit.jupiter:junit-jupiter:5.7.0')
-  testImplementation("org.apache.commons:commons-lang3:3.9")
+  testImplementation('org.apache.commons:commons-lang3:3.12.0')
 }
 
 test {
@@ -65,7 +65,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql-lookup'
 sourceCompatibility = JavaVersion.VERSION_16
-version = "0.2.3"
+version = "0.2.4"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

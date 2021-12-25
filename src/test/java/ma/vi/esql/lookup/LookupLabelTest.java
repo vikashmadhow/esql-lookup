@@ -21,9 +21,9 @@ class LookupLabelTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     con.exec("delete t from t:a.b.T");
-                     con.exec("delete s from s:S");
-                     con.exec("insert into S(_id, a, b, i) values "
+                     con.exec("delete t from t:a.b.LkT");
+                     con.exec("delete s from s:LkS");
+                     con.exec("insert into LkS(_id, a, b, i) values "
                                   + "(newid(), 1, 0, '0115'),"
                                   + "(newid(), 2, 9, '0164'),"
                                   + "(newid(), 3, 8, '0992'),"
@@ -35,7 +35,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass') from LkS order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -48,9 +48,9 @@ class LookupLabelTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     con.exec("delete t from t:a.b.T");
-                     con.exec("delete s from s:S");
-                     con.exec("insert into S(_id, a, b, i) values "
+                     con.exec("delete t from t:a.b.LkT");
+                     con.exec("delete s from s:LkS");
+                     con.exec("insert into LkS(_id, a, b, i) values "
                                   + "(newid(), 1, 0, '0115'),"
                                   + "(newid(), 2, 9, '0164'),"
                                   + "(newid(), 3, 8, '0992'),"
@@ -62,7 +62,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass', 'TestGroup') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass', 'TestGroup') from LkS order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -75,9 +75,9 @@ class LookupLabelTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     con.exec("delete t from t:a.b.T");
-                     con.exec("delete s from s:S");
-                     con.exec("insert into S(_id, a, b, i) values "
+                     con.exec("delete t from t:a.b.LkT");
+                     con.exec("delete s from s:LkS");
+                     con.exec("insert into LkS(_id, a, b, i) values "
                                   + "(newid(), 1, 0, '0115'),"
                                   + "(newid(), 2, 9, '0164'),"
                                   + "(newid(), 3, 8, '0992'),"
@@ -89,7 +89,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from LkS order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -102,9 +102,9 @@ class LookupLabelTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     con.exec("delete t from t:a.b.T");
-                     con.exec("delete s from s:S");
-                     con.exec("insert into S(_id, a, b, i) values "
+                     con.exec("delete t from t:a.b.LkT");
+                     con.exec("delete s from s:LkS");
+                     con.exec("insert into LkS(_id, a, b, i) values "
                                   + "(newid(), 1, 0, '0115'),"
                                   + "(newid(), 2, 9, '0164'),"
                                   + "(newid(), 3, 8, '0992'),"
@@ -116,7 +116,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(show_last_only:=false, i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from S order by a");
+                     Result rs = con.exec("select i, lookuplabel(show_last_only:=false, i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from LkS order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -129,9 +129,9 @@ class LookupLabelTest extends DataTest {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
                    try (EsqlConnection con = db.esql(db.pooledConnection())) {
-                     con.exec("delete t from t:a.b.T");
-                     con.exec("delete s from s:S");
-                     con.exec("insert into S(_id, a, b, i) values "
+                     con.exec("delete t from t:a.b.LkT");
+                     con.exec("delete s from s:LkS");
+                     con.exec("insert into LkS(_id, a, b, i) values "
                                   + "(newid(), 1, 0, '0115'),"
                                   + "(newid(), 2, 9, '0164'),"
                                   + "(newid(), 3, 8, '0992'),"
@@ -147,7 +147,7 @@ class LookupLabelTest extends DataTest {
                          "select i, " +
                              "lookuplabel(show_last_only:=false, last_to_first:=false, show_code:=true, show_text:=false," +
                              "            i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') " +
-                             "from S order by a");
+                             "from LkS order by a");
                      printResult(rs, 20);
                    }
                  }));

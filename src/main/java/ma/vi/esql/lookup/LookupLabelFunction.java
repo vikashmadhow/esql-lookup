@@ -25,7 +25,7 @@ import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
  * <p>
  * Given that SQL Server does not support dynamic sql in functions
  * this function is resolved to a static function based on the number
- * of links on that database. Thus there is a limit to the number of
+ * of links on that database. Thus, there is a limit to the number of
  * links supported on SQL Server.
  * <p>
  * Other databases (Oracle, Postgresql) do not have this limitation and
@@ -44,7 +44,6 @@ public class LookupLabelFunction extends Function {
   @Override
   public String translate(FunctionCall call, Target target, EsqlPath path) {
     List<Expression<?, ?>> args = call.arguments();
-
     Expression<?, ?> code = args.get(0);
     Expression<?, ?> linkTable = args.get(1);
     if (target == POSTGRESQL) {
@@ -85,7 +84,7 @@ public class LookupLabelFunction extends Function {
       }
       func.append(')');
       int links = args.size() > 4 ? args.size() - 4 : 0;
-      return "_core.lookup_label" + links + func.toString();
+      return "_core.lookup_label" + links + func;
 
     } else {
       StringBuilder func = new StringBuilder(

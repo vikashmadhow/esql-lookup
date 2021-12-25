@@ -4,27 +4,30 @@
 
 package ma.vi.esql.lookup;
 
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.function.Function;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
-import ma.vi.esql.syntax.expression.literal.IntegerLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.query.JoinTableExpr;
+import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static ma.vi.base.string.Strings.random;
 import static ma.vi.esql.lookup.JoinLabel.getBooleanParam;
 import static ma.vi.esql.syntax.Translatable.Target.ESQL;
+import static ma.vi.esql.syntax.query.ColumnList.makeUnique;
 
 /**
  * <p>
@@ -147,29 +150,44 @@ public class LookupLabel extends Function implements Macro {
      *        join Lookup l on v0.lookup_id=l.id and l.name=X
      *       where v0.code='123'
      */
-    int alias = 0;
-    String unique = random(10) + "_";
-    String fromAlias = unique + alias;
-    String lookupAlias = "lookup_" + unique;
-    Expression<?, String> value = label(ctx, showText, showCode, matchBy, "v" + fromAlias, codeSeparator);
+    QueryUpdate qu = path.ancestor(QueryUpdate.class);
+    Set<String> aliases = qu != null && qu.tables().exists()
+                        ? new HashSet<>(qu.tables().type(path.add(qu)).aliases())
+                        : new HashSet<>();
+    int aliasIndex = 1;
+    T2<String, Integer> uniqueName = makeUnique("value", aliases, aliasIndex, false);
+    String fromValueAlias = uniqueName.a;
+    aliasIndex = uniqueName.b;
+    String firstFromValueAlias = fromValueAlias;
+
+    uniqueName = makeUnique("lookup", aliases, aliasIndex, false);
+    String lookupAlias = uniqueName.a;
+    aliasIndex = uniqueName.b;
+
+    Expression<?, String> value = label(ctx, showText, showCode, matchBy, fromValueAlias, codeSeparator);
 
     /*
      * from LookupValue v0
      * join Lookup l on v0.lookup_id=l._id and l.name=X
      */
     TableExpr from = new JoinTableExpr(ctx, null,
-                                       new SingleTableExpr(ctx, "_platform.lookup.LookupValue", "v" + fromAlias),
-                                       new SingleTableExpr(ctx, "_platform.lookup.Lookup", lookupAlias),
+                                       new SingleTableExpr(ctx, "_lookup.LookupValue", fromValueAlias),
+                                       new SingleTableExpr(ctx, "_lookup.Lookup", lookupAlias),
                                        new And(ctx,
                                                new Equality(ctx,
-                                                            new ColumnRef(ctx, "v" + fromAlias, "lookup_id"),
+                                                            new ColumnRef(ctx, fromValueAlias, "lookup_id"),
                                                             new ColumnRef(ctx, lookupAlias, "_id")),
                                                new Equality(ctx,
                                                             new ColumnRef(ctx, lookupAlias, "name"),
                                                             lookup)));
     for (String linkName: links) {
-      alias++;
-      String toAlias = unique + alias;
+      uniqueName = makeUnique("value", aliases, aliasIndex, false);
+      String toValueAlias = uniqueName.a;
+      aliasIndex = uniqueName.b;
+
+      uniqueName = makeUnique("link", aliases, aliasIndex, false);
+      String toLinkAlias = uniqueName.a;
+      aliasIndex = uniqueName.b;
 
       /*
        * from ...
@@ -177,34 +195,32 @@ public class LookupLabel extends Function implements Macro {
        * join LookupValue      v1 on lk1.target_value_id=v1._id
        */
       from = new JoinTableExpr(ctx, null, from,
-                               new SingleTableExpr(ctx, "_platform.lookup.LookupValueLink", "lk" + toAlias),
+                               new SingleTableExpr(ctx, "_lookup.LookupValueLink", toLinkAlias),
                                new And(ctx,
                                        new Equality(ctx,
-                                                    new ColumnRef(ctx, "lk" + toAlias, "source_value_id"),
-                                                    new ColumnRef(ctx, "v" + fromAlias, "_id")),
+                                                    new ColumnRef(ctx, toLinkAlias, "source_value_id"),
+                                                    new ColumnRef(ctx, fromValueAlias, "_id")),
                                        new Equality(ctx,
-                                                    new ColumnRef(ctx, "lk" + toAlias, "name"),
+                                                    new ColumnRef(ctx, toLinkAlias, "name"),
                                                     new StringLiteral(ctx, linkName))));
       from = new JoinTableExpr(ctx, null, from,
-                               new SingleTableExpr(ctx, "_platform.lookup.LookupValue", "v" + toAlias),
+                               new SingleTableExpr(ctx, "_lookup.LookupValue", toValueAlias),
                                new Equality(ctx,
-                                            new ColumnRef(ctx, "lk" + toAlias, "target_value_id"),
-                                            new ColumnRef(ctx, "v" + toAlias, "_id")));
+                                            new ColumnRef(ctx, toLinkAlias, "target_value_id"),
+                                            new ColumnRef(ctx, toValueAlias, "_id")));
 
-      Expression<?, String> label = label(ctx, showText, showCode, matchBy, "v" + toAlias, codeSeparator);
+      Expression<?, String> label = label(ctx, showText, showCode, matchBy, toValueAlias, codeSeparator);
       value = showLastOnly ? label :
               lastToFirst  ? new Concatenation(ctx, asList(label, labelSeparator, value)) :
                              new Concatenation(ctx, asList(value, labelSeparator, label));
-      fromAlias = toAlias;
+      fromValueAlias = toValueAlias;
     }
     return new SelectExpression(ctx, new SelectBuilder(ctx)
                                            .column(value, null)
                                            .from(from)
                                            .where(new Equality(ctx,
-                                                               new ColumnRef(ctx, "v" + unique + '0', matchBy),
+                                                               new ColumnRef(ctx, firstFromValueAlias, matchBy),
                                                                code))
-                                           .orderBy(new IntegerLiteral(ctx, 1L), "asc")
-                                           .limit("1")
                                            .build());
   }
 
