@@ -184,7 +184,7 @@ public class DataTest {
             String sectionId;
             try (Result result = con.exec(p.parse("select _id from _lookup.Lookup where name='TestSection'"))) {
               result.next();
-              sectionId = result.get(1).value.toString();
+              sectionId = result.get(1).value().toString();
             }
 
             log.log(INFO, "Linking TestDivision to TestSection");
@@ -568,7 +568,7 @@ public class DataTest {
             String divisionId;
             try (Result result = con.exec(p.parse("select _id from _lookup.Lookup where name='TestDivision'"))) {
               result.next();
-              divisionId = result.get(1).value.toString();
+              divisionId = result.get(1).value().toString();
             }
             con.exec(p.parse("insert into _lookup.LookupValueLink(_id, name, source_value_id, target_value_id) " +
                                 "select newid(), 'TestDivision', _id, " +
@@ -1111,7 +1111,7 @@ public class DataTest {
             String groupId;
             try (Result result = con.exec(p.parse("select _id from _lookup.Lookup where name='TestGroup'"))) {
               result.next();
-              groupId = result.get(1).value.toString();
+              groupId = result.get(1).value().toString();
             }
             con.exec(p.parse("insert into _lookup.LookupValueLink(_id, name, source_value_id, target_value_id) " +
                                 "select newid(), 'TestGroup', _id, " +
@@ -1256,17 +1256,17 @@ public class DataTest {
     boolean first = true;
     while(rs.next()) {
       if (first) {
-        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
         System.out.print('|');
-        for (int i = 0; i < rs.columns(); i++) {
-          System.out.print(rightPad(rs.column(i + 1).name(), columnWidth) + '|');
+        for (int i = 0; i < rs.columnsCount(); i++) {
+          System.out.print(rightPad(rs.column(i + 1).column().name(), columnWidth) + '|');
         }
         System.out.println();
-        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+        System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
         first = false;
       }
       System.out.print('|');
-      for (int i = 0; i < rs.columns(); i++) {
+      for (int i = 0; i < rs.columnsCount(); i++) {
         Object value = rs.value(i + 1);
         if (value == null) {
           System.out.print(repeat(' ', columnWidth) + '|');
@@ -1279,7 +1279,7 @@ public class DataTest {
       System.out.println();
     }
     if (!first) {
-      System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columns()));
+      System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
     }
   }
 

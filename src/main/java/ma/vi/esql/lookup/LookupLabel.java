@@ -17,6 +17,7 @@ import ma.vi.esql.syntax.query.JoinTableExpr;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
+import ma.vi.esql.translation.TranslationException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,8 +27,8 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static ma.vi.esql.lookup.JoinLabel.getBooleanParam;
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 import static ma.vi.esql.syntax.query.ColumnList.makeUnique;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * <p>
@@ -66,7 +67,7 @@ import static ma.vi.esql.syntax.query.ColumnList.makeUnique;
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class LookupLabel extends Function implements Macro {
+public class LookupLabel extends Function implements TypedMacro {
   public LookupLabel() {
     super("lookuplabel", Types.StringType, emptyList());
   }
@@ -101,22 +102,24 @@ public class LookupLabel extends Function implements Macro {
     for (Expression<?, ?> arg: arguments) {
       if (arg instanceof NamedArgument namedArg) {
         switch (namedArg.name()) {
-          case "show_code"        -> showCode = getBooleanParam(namedArg, "show_code", path);
-          case "show_text"        -> showText = getBooleanParam(namedArg, "show_text", path);
-          case "code_separator"   -> codeSeparator = namedArg.arg();
-          case "show_last_only"   -> showLastOnly = getBooleanParam(namedArg, "show_last_only", path);
-          case "last_to_first"    -> lastToFirst = getBooleanParam(namedArg, "last_to_first", path);
-          case "label_separator"  -> labelSeparator = namedArg.arg();
-          case "match_by"         -> matchBy = namedArg.arg().translate(ESQL);
-          default                 -> throw new TranslationException("Invalid named argument in lookuplabel: " + namedArg.name() + "\n"
-                                                                  + "lookuplabel recognises the following named arguments:\n"
-                                                                  + "show_code: whether to show the code in the label or not. Default is true.\n"
-                                                                  + "show_text: whether to show the label or not. Default is true.\n"
-                                                                  + "code_separator: the separator between the code and text. Default is ' - '\n"
-                                                                  + "show_last_only: Show the last label element in the chain only (a -> b -> c, show c only). Default is true.\n"
-                                                                  + "label_separator: the separator between the labels from different lookups. Default is '/'.\n"
-                                                                  + "last_to_first: Shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.\n"
-                                                                  + "match_by: the code column in LookupValue to match the value to; can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.");
+          case "show_code"       -> showCode       = getBooleanParam(namedArg, "show_code", path);
+          case "show_text"       -> showText       = getBooleanParam(namedArg, "show_text", path);
+          case "code_separator"  -> codeSeparator  = namedArg.arg();
+          case "show_last_only"  -> showLastOnly   = getBooleanParam(namedArg, "show_last_only", path);
+          case "last_to_first"   -> lastToFirst    = getBooleanParam(namedArg, "last_to_first", path);
+          case "label_separator" -> labelSeparator = namedArg.arg();
+          case "match_by"        -> matchBy        = namedArg.arg().translate(ESQL);
+          default                -> throw new TranslationException("""
+                                                                   Invalid named argument in lookuplabel: %1s
+                                                                   lookuplabel recognises the following named arguments:
+                                                                   show_code: whether to show the code in the label or not. Default is true.
+                                                                   show_text: whether to show the label or not. Default is true.
+                                                                   code_separator: the separator between the code and text. Default is ' - '
+                                                                   show_last_only: Show the last label element in the chain only (a -> b -> c, show c only). Default is true.
+                                                                   label_separator: the separator between the labels from different lookups. Default is '/'.
+                                                                   last_to_first: Shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.
+                                                                   match_by: the code column in LookupValue to match the value to; can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.
+                                                                   """.formatted(namedArg.name()));
         }
       } else if (code == null) {
         code = arg;
@@ -151,8 +154,8 @@ public class LookupLabel extends Function implements Macro {
      *       where v0.code='123'
      */
     QueryUpdate qu = path.ancestor(QueryUpdate.class);
-    Set<String> aliases = qu != null && qu.tables().exists()
-                        ? new HashSet<>(qu.tables().type(path.add(qu)).aliases())
+    Set<String> aliases = qu != null && qu.tables().exists(path)
+                        ? new HashSet<>(qu.tables().computeType(path.add(qu)).aliases())
                         : new HashSet<>();
     int aliasIndex = 1;
     T2<String, Integer> uniqueName = makeUnique("value", aliases, aliasIndex, false);
@@ -170,7 +173,7 @@ public class LookupLabel extends Function implements Macro {
      * from LookupValue v0
      * join Lookup l on v0.lookup_id=l._id and l.name=X
      */
-    TableExpr from = new JoinTableExpr(ctx, null,
+    TableExpr from = new JoinTableExpr(ctx, null, false,
                                        new SingleTableExpr(ctx, "_lookup.LookupValue", fromValueAlias),
                                        new SingleTableExpr(ctx, "_lookup.Lookup", lookupAlias),
                                        new And(ctx,
@@ -194,7 +197,7 @@ public class LookupLabel extends Function implements Macro {
        * join LookupValueLink lk1 on lk1.source_value_id=v0._id and lk1.name=link_name
        * join LookupValue      v1 on lk1.target_value_id=v1._id
        */
-      from = new JoinTableExpr(ctx, null, from,
+      from = new JoinTableExpr(ctx, null, false, from,
                                new SingleTableExpr(ctx, "_lookup.LookupValueLink", toLinkAlias),
                                new And(ctx,
                                        new Equality(ctx,
@@ -203,7 +206,7 @@ public class LookupLabel extends Function implements Macro {
                                        new Equality(ctx,
                                                     new ColumnRef(ctx, toLinkAlias, "name"),
                                                     new StringLiteral(ctx, linkName))));
-      from = new JoinTableExpr(ctx, null, from,
+      from = new JoinTableExpr(ctx, null, false, from,
                                new SingleTableExpr(ctx, "_lookup.LookupValue", toValueAlias),
                                new Equality(ctx,
                                             new ColumnRef(ctx, toLinkAlias, "target_value_id"),

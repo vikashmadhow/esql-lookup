@@ -16,15 +16,16 @@ import ma.vi.esql.syntax.query.JoinTableExpr;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.syntax.query.TableExpr;
+import ma.vi.esql.translation.TranslationException;
 
 import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static ma.vi.esql.semantic.type.Type.unqualifiedName;
-import static ma.vi.esql.syntax.Translatable.Target.ESQL;
 import static ma.vi.esql.syntax.expression.ColumnRef.qualify;
 import static ma.vi.esql.syntax.query.ColumnList.makeUnique;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
 /**
  * <p>
@@ -55,7 +56,7 @@ import static ma.vi.esql.syntax.query.ColumnList.makeUnique;
  * </ul>
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
-public class JoinLabel extends Function implements Macro {
+public class JoinLabel extends Function implements TypedMacro {
   public JoinLabel() {
     super("joinlabel", Types.StringType, emptyList());
   }
@@ -88,8 +89,8 @@ public class JoinLabel extends Function implements Macro {
       Expression<?, ?> arg = i.next();
       if (arg instanceof NamedArgument namedArg) {
         switch (namedArg.name()) {
-          case "show_last_only"  -> showLastOnly = getBooleanParam(namedArg, "show_last_only", path);
-          case "last_to_first"   -> lastToFirst = getBooleanParam(namedArg, "last_to_first", path);
+          case "show_last_only"  -> showLastOnly   = getBooleanParam(namedArg, "show_last_only", path);
+          case "last_to_first"   -> lastToFirst    = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator" -> labelSeparator = namedArg.arg();
           default                -> throw new TranslationException("Invalid named argument in joinlabel: " + namedArg.name());
         }
@@ -146,8 +147,8 @@ public class JoinLabel extends Function implements Macro {
     Expression<?, ?> firstSourceId = link.sourceId;
 
     QueryUpdate qu = path.ancestor(QueryUpdate.class);
-    Set<String> aliases = qu != null && qu.tables().exists()
-                        ? new HashSet<>(qu.tables().type(path.add(qu)).aliases())
+    Set<String> aliases = qu != null && qu.tables().exists(path)
+                        ? new HashSet<>(qu.tables().computeType(path.add(qu)).aliases())
                         : new HashSet<>();
     int aliasIndex = 1;
     T2<String, Integer> uniqueName = makeUnique(unqualifiedName(link.targetTable),
@@ -166,7 +167,7 @@ public class JoinLabel extends Function implements Macro {
       aliasIndex = uniqueName.b;
 
       link = linkIter.next();
-      from = new JoinTableExpr(ctx, null, from,
+      from = new JoinTableExpr(ctx, null, false, from,
                                new SingleTableExpr(ctx, link.targetTable, toAlias),
                                new Equality(ctx,
                                             toColumnRef(parser, link.sourceId, fromAlias, path),

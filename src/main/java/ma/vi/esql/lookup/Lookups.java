@@ -11,8 +11,8 @@ import java.sql.SQLException;
 import java.util.Set;
 
 import static java.lang.System.Logger.Level.INFO;
-import static ma.vi.esql.syntax.Translatable.Target.POSTGRESQL;
-import static ma.vi.esql.syntax.Translatable.Target.SQLSERVER;
+import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
+import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
 /**
  * @author Vikash Madhow (vikash.madhow@gmail.com)
