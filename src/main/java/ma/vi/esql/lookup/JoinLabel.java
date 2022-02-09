@@ -6,12 +6,15 @@ package ma.vi.esql.lookup;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.builder.SelectBuilder;
-import ma.vi.esql.function.Function;
+import ma.vi.esql.exec.function.Function;
+import ma.vi.esql.exec.function.FunctionCall;
+import ma.vi.esql.exec.function.NamedArgument;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
+import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.JoinTableExpr;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.SingleTableExpr;
@@ -102,19 +105,19 @@ public class JoinLabel extends Function implements TypedMacro {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id was provided for one link.");
         }
-        String targetId = ((StringLiteral)i.next()).value(ESQL, path);
+        String targetId = ((StringLiteral)i.next()).exec(ESQL, null, path, esql.context.structure);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id and target id were provided for one link.");
         }
-        String label = ((StringLiteral)i.next()).value(ESQL, path);
+        String label = ((StringLiteral)i.next()).exec(ESQL, null, path, esql.context.structure);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id, target id and label were provided for one link.");
         }
-        String table = ((StringLiteral)i.next()).value(ESQL, path);
+        String table = ((StringLiteral)i.next()).exec(ESQL, null, path, esql.context.structure);
         links.add(new Link(arg, targetId, label, table));
       }
     }
@@ -202,7 +205,7 @@ public class JoinLabel extends Function implements TypedMacro {
   static boolean getBooleanParam(NamedArgument namedArg,
                                  String argName,
                                  EsqlPath path) {
-    Object value = namedArg.arg().value(null, path);
+    Object value = namedArg.arg().exec(ESQL, null, path, namedArg.context.structure);
     if (value != null && !(value instanceof Boolean)) {
       throw new TranslationException(argName + " must be a boolean value (" + namedArg.arg() + " was provided)");
     }
@@ -214,7 +217,7 @@ public class JoinLabel extends Function implements TypedMacro {
                                            String   qualifier,
                                            EsqlPath path) {
     Expression<?, String> e = expr instanceof String s        ? parser.parseExpression(s)
-                            : expr instanceof StringLiteral s ? parser.parseExpression(s.value(ESQL, path))
+                            : expr instanceof StringLiteral s ? parser.parseExpression(s.exec(ESQL, null, path, s.context.structure))
                             : (Expression<?, String>)expr;
     return qualifier == null ? e : qualify(e, qualifier);
   }

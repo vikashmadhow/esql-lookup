@@ -116,7 +116,7 @@ class LookupLabelTest extends DataTest {
                                   + "(newid(), 9, 2, '4532'),"
                                   + "(newid(), 0, 1, '5811')");
 
-                     Result rs = con.exec("select i, lookuplabel(show_last_only:=false, i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from LkS order by a");
+                     Result rs = con.exec("select i, lookuplabel(show_last_only=false, i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') from LkS order by a");
                      printResult(rs, 20);
                    }
                  }));
@@ -145,7 +145,7 @@ class LookupLabelTest extends DataTest {
 
                      Result rs = con.exec(
                          "select i, " +
-                             "lookuplabel(show_last_only:=false, last_to_first:=false, show_code:=true, show_text:=false," +
+                             "lookuplabel(show_last_only=false, last_to_first=false, show_code=true, show_text=false," +
                              "            i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') " +
                              "from LkS order by a");
                      printResult(rs, 20);

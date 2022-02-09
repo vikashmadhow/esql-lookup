@@ -4,12 +4,14 @@
 
 package ma.vi.esql.lookup;
 
-import ma.vi.esql.function.Function;
-import ma.vi.esql.function.FunctionParameter;
+import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.exec.env.Environment;
+import ma.vi.esql.exec.function.Function;
+import ma.vi.esql.exec.function.FunctionCall;
+import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.FunctionCall;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,12 +39,16 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class LookupLabelFunction extends Function {
   public LookupLabelFunction() {
     super("lookuplabelf", Types.TextType,
-          Arrays.asList(new FunctionParameter("code", Types.TextType),
-            new FunctionParameter("lookup", Types.TextType)));
+          Arrays.asList(new FunctionParam("code", Types.TextType),
+                        new FunctionParam("lookup", Types.TextType)));
   }
 
   @Override
-  public String translate(FunctionCall call, Target target, EsqlPath path) {
+  public String translate(FunctionCall   call,
+                          Target         target,
+                          EsqlConnection esqlCon,
+                          EsqlPath       path,
+                          Environment    env) {
     List<Expression<?, ?>> args = call.arguments();
     Expression<?, ?> code = args.get(0);
     Expression<?, ?> linkTable = args.get(1);

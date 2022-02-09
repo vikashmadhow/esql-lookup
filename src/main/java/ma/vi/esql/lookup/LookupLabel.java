@@ -6,13 +6,16 @@ package ma.vi.esql.lookup;
 
 import ma.vi.base.tuple.T2;
 import ma.vi.esql.builder.SelectBuilder;
-import ma.vi.esql.function.Function;
+import ma.vi.esql.exec.function.Function;
+import ma.vi.esql.exec.function.FunctionCall;
+import ma.vi.esql.exec.function.NamedArgument;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.*;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.JoinTableExpr;
 import ma.vi.esql.syntax.query.QueryUpdate;
 import ma.vi.esql.syntax.query.SingleTableExpr;
@@ -126,7 +129,7 @@ public class LookupLabel extends Function implements TypedMacro {
       } else if (lookup == null) {
         lookup = arg;
       } else {
-        links.add(((StringLiteral)arg).value(ESQL, path));
+        links.add(((StringLiteral)arg).exec(ESQL, null, path, arg.context.structure));
       }
     }
     if (code == null) {

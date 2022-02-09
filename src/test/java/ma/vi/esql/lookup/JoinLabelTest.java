@@ -27,8 +27,8 @@ public class JoinLabelTest extends DataTest {
 
                      UUID id1 = randomUUID(), id2 = randomUUID();
                      con.exec("insert into LkS(_id, a, b, e, h, j) values "
-                                  + "(u'" + id1 + "', 'A1', 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                                  + "(u'" + id2 + "', 'A2', 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                                  + "(u'" + id1 + "', 'A1', 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(u'" + id2 + "', 'A2', 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      con.exec("insert into a.b.LkT(_id, a, b, s_id) values"
                                   + "(newid(), 'B1', 2, u'" + id1 + "'), "
@@ -52,8 +52,8 @@ public class JoinLabelTest extends DataTest {
 
                      UUID id1 = randomUUID(), id2 = randomUUID();
                      con.exec("insert into LkS(_id, a, b, e, h, j) values "
-                                  + "(u'" + id1 + "', 'A1', 2, true, text['Four', 'Quatre'], int[1, 2, 3]),"
-                                  + "(u'" + id2 + "', 'A2', 7, false, text['Nine', 'Neuf', 'X'], int[5, 6, 7, 8])");
+                                  + "(u'" + id1 + "', 'A1', 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(u'" + id2 + "', 'A2', 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
 
                      UUID bid1 = randomUUID(), bid2 = randomUUID();
                      con.exec("insert into a.b.LkT(_id, a, b, s_id) values"
@@ -66,7 +66,7 @@ public class JoinLabelTest extends DataTest {
 
                      Result rs = con.exec("select a, b, a || ' / ' || joinlabel(t_id, '_id', 'a', 'a.b.LkT', " +
                                                                                    "'s_id', '_id', 'a', 'LkS', " +
-                                                                                   "last_to_first:=false, label_separator:='|') from a.b.LkX");
+                                                                                   "last_to_first=false, label_separator='|') from a.b.LkX");
                      printResult(rs, 30);
                    }
                  }));

@@ -50,8 +50,8 @@ dependencies {
   implementation("com.vikmad:base:latest.release")
 
   // Use JUnit test framework
-  testImplementation(platform('org.junit:junit-bom:5.7.0'))
-  testImplementation('org.junit.jupiter:junit-jupiter:5.7.0')
+  testImplementation(platform('org.junit:junit-bom:5.8.2'))
+  testImplementation('org.junit.jupiter:junit-jupiter:5.8.2')
   testImplementation('org.apache.commons:commons-lang3:3.12.0')
 }
 
@@ -64,8 +64,8 @@ test {
 
 group = 'com.vikmad'
 archivesBaseName = 'esql-lookup'
-sourceCompatibility = JavaVersion.VERSION_16
-version = "0.2.4"
+sourceCompatibility = JavaVersion.VERSION_17
+version = "0.2.6"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {

@@ -39,12 +39,12 @@ public class DataTest {
         con.exec("delete l from l:_lookup.Lookup");
 
         try (Result rs = con.exec("select _id from _lookup.Lookup l where name='TestSection'")) {
-          if (!rs.next()) {
+          if (!rs.toNext()) {
             log.log(INFO, "Creating TestSection lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(:id, :name, :description)"),
+                                "values(@id, @name, @description)"),
                      Param.of("id", id.toString()),
                      Param.of("name", "TestSection"),
                      Param.of("description", "Test Section"));
@@ -76,12 +76,12 @@ public class DataTest {
         }
 
         try (Result rs = con.exec(p.parse("select _id from _lookup.Lookup where name='TestDivision'"))) {
-          if (!rs.next()) {
+          if (!rs.toNext()) {
             log.log(INFO, "Creating TestDivision lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(:id, :name, :description)"),
+                                "values(@id, @name, @description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "TestDivision"),
                    Param.of("description", "Test Division"));
@@ -283,12 +283,12 @@ public class DataTest {
         }
 
         try (Result rs = con.exec(p.parse("select _id from _lookup.Lookup where name='TestGroup'"))) {
-          if (!rs.next()) {
+          if (!rs.toNext()) {
             log.log(INFO, "Creating TestGroup lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(:id, :name, :description)"),
+                                "values(@id, @name, @description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "TestGroup"),
                    Param.of("description", "Test group"));
@@ -574,19 +574,19 @@ public class DataTest {
                                 "select newid(), 'TestDivision', _id, " +
                                 "       (select _id " +
                                 "          from target:_lookup.LookupValue  " +
-                                "         where target.code=leftstr(lv.code, 2) " +
+                                "         where target.code=left(lv.code, 2) " +
                                 "           and target.lookup_id='" + divisionId + "') " +
                                 "from   lv:_lookup.LookupValue where lv.lookup_id='" + id + "'"));
           }
         }
 
         try (Result rs = con.exec(p.parse("select _id from _lookup.Lookup where name='TestClass'"))) {
-          if (!rs.next()) {
+          if (!rs.toNext()) {
             log.log(INFO, "Creating TestClass lookup");
 
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(:id, :name, :description)"),
+                                "values(@id, @name, @description)"),
                    Param.of("id", id.toString()),
                    Param.of("name", "TestClass"),
                    Param.of("description", "Test class"));
@@ -1117,7 +1117,7 @@ public class DataTest {
                                 "select newid(), 'TestGroup', _id, " +
                                 "       (select _id " +
                                 "          from target:_lookup.LookupValue  " +
-                                "         where target.code=leftstr(lv.code, 3) " +
+                                "         where target.code=left(lv.code, 3) " +
                                 "           and target.lookup_id='" + groupId + "') " +
                                 "from lv:_lookup.LookupValue where lv.lookup_id='" + id + "'"));
           }
@@ -1142,13 +1142,13 @@ public class DataTest {
                                 "  f=from LkS select max(a) {" +
                                 "    m1: from LkS select min(a)" +
                                 "  }," +
-                                "  h text[] {" +
+                                "  h []text {" +
                                 "    m1: 5" +
                                 "  }," +
                                 "  i string {" +
                                 "    label: lookuplabel(i, 'TestClass')" +
                                 "  }," +
-                                "  j int[], " +
+                                "  j []int, " +
                                 "  k interval, " +
                                 "  l int, " +
                                 "  primary key(_id)" +
@@ -1254,7 +1254,7 @@ public class DataTest {
 
   public static void printResult(Result rs, int columnWidth) {
     boolean first = true;
-    while(rs.next()) {
+    while(rs.toNext()) {
       if (first) {
         System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
         System.out.print('|');
