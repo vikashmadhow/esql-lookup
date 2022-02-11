@@ -46,8 +46,7 @@ sourceSets {
 }
 
 dependencies {
-  implementation("com.vikmad:esql:latest.release")
-  implementation("com.vikmad:base:latest.release")
+  implementation("ma.vi:esql:latest.release")
 
   // Use JUnit test framework
   testImplementation(platform('org.junit:junit-bom:5.8.2'))
@@ -65,7 +64,7 @@ test {
 group = 'com.vikmad'
 archivesBaseName = 'esql-lookup'
 sourceCompatibility = JavaVersion.VERSION_17
-version = "0.2.6"
+version = "0.3.0"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 java {
@@ -90,7 +89,7 @@ publishing {
     mavenJava(MavenPublication) {
       from components.java
       pom {
-        groupId = 'com.vikmad'
+        groupId = 'ma.vi'
         artifactId = 'esql-lookup'
         name = "ESQL lookup functionality as an extension"
         description = 'ESQL lookup functionality as an extension'

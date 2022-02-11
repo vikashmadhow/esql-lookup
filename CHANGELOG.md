@@ -4,7 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.6]
+## [0.3.0] - 2022-02-11
+### Added
+- The schema where the lookup tables are created can be configured on initialisation.
+  Default is "_lookup".
+- All lookup SQL Server functions are put in the (configured) lookup schema 
+  instead of "_core".
+
+### Changed
+- Change name of extension class from `Lookups` to `LookupExtension`.
+
+## [0.2.6] - 2022-02-09
 ### Changed
 - Incorporate changes made to the 0.8.0+ line of ESQL. 
 

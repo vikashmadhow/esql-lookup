@@ -37,10 +37,11 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LookupLabelFunction extends Function {
-  public LookupLabelFunction() {
+  public LookupLabelFunction(String schema) {
     super("lookuplabelf", Types.TextType,
           Arrays.asList(new FunctionParam("code", Types.TextType),
                         new FunctionParam("lookup", Types.TextType)));
+    this.schema = schema;
   }
 
   @Override
@@ -54,7 +55,7 @@ public class LookupLabelFunction extends Function {
     Expression<?, ?> linkTable = args.get(1);
     if (target == POSTGRESQL) {
       StringBuilder func = new StringBuilder(
-          "_core.lookup_label((" +
+          '"' + schema + "\".lookup_label((" +
               code.translate(target) + ")::text, (" +
               linkTable.translate(target) + ")::text, ");
       String showCode = "true";
@@ -90,7 +91,7 @@ public class LookupLabelFunction extends Function {
       }
       func.append(')');
       int links = args.size() > 4 ? args.size() - 4 : 0;
-      return "_core.lookup_label" + links + func;
+      return '"' + schema + "\".lookup_label" + links + func;
 
     } else {
       StringBuilder func = new StringBuilder(
@@ -113,4 +114,9 @@ public class LookupLabelFunction extends Function {
       return func.toString();
     }
   }
+
+  /**
+   * Configured schema to use for the lookup tables and functions
+   */
+  private final String schema;
 }

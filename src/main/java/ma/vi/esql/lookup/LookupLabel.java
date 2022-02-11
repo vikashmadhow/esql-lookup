@@ -10,8 +10,13 @@ import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.NamedArgument;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.*;
-import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.expression.ColumnRef;
+import ma.vi.esql.syntax.expression.Concatenation;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
@@ -71,8 +76,9 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LookupLabel extends Function implements TypedMacro {
-  public LookupLabel() {
+  public LookupLabel(String schema) {
     super("lookuplabel", Types.StringType, emptyList());
+    this.schema = schema;
   }
 
   @Override
@@ -177,8 +183,8 @@ public class LookupLabel extends Function implements TypedMacro {
      * join Lookup l on v0.lookup_id=l._id and l.name=X
      */
     TableExpr from = new JoinTableExpr(ctx, null, false,
-                                       new SingleTableExpr(ctx, "_lookup.LookupValue", fromValueAlias),
-                                       new SingleTableExpr(ctx, "_lookup.Lookup", lookupAlias),
+                                       new SingleTableExpr(ctx, schema + ".LookupValue", fromValueAlias),
+                                       new SingleTableExpr(ctx, schema + ".Lookup", lookupAlias),
                                        new And(ctx,
                                                new Equality(ctx,
                                                             new ColumnRef(ctx, fromValueAlias, "lookup_id"),
@@ -201,7 +207,7 @@ public class LookupLabel extends Function implements TypedMacro {
        * join LookupValue      v1 on lk1.target_value_id=v1._id
        */
       from = new JoinTableExpr(ctx, null, false, from,
-                               new SingleTableExpr(ctx, "_lookup.LookupValueLink", toLinkAlias),
+                               new SingleTableExpr(ctx, schema + ".LookupValueLink", toLinkAlias),
                                new And(ctx,
                                        new Equality(ctx,
                                                     new ColumnRef(ctx, toLinkAlias, "source_value_id"),
@@ -210,7 +216,7 @@ public class LookupLabel extends Function implements TypedMacro {
                                                     new ColumnRef(ctx, toLinkAlias, "name"),
                                                     new StringLiteral(ctx, linkName))));
       from = new JoinTableExpr(ctx, null, false, from,
-                               new SingleTableExpr(ctx, "_lookup.LookupValue", toValueAlias),
+                               new SingleTableExpr(ctx, schema + ".LookupValue", toValueAlias),
                                new Equality(ctx,
                                             new ColumnRef(ctx, toLinkAlias, "target_value_id"),
                                             new ColumnRef(ctx, toValueAlias, "_id")));
@@ -256,4 +262,9 @@ public class LookupLabel extends Function implements TypedMacro {
     }
     return label;
   }
+
+  /**
+   * Configured schema to use for the lookup tables and functions
+   */
+  private final String schema;
 }

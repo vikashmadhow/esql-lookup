@@ -10,8 +10,13 @@ import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.NamedArgument;
 import ma.vi.esql.semantic.type.Types;
-import ma.vi.esql.syntax.*;
-import ma.vi.esql.syntax.expression.*;
+import ma.vi.esql.syntax.Context;
+import ma.vi.esql.syntax.Esql;
+import ma.vi.esql.syntax.EsqlPath;
+import ma.vi.esql.syntax.Parser;
+import ma.vi.esql.syntax.expression.Concatenation;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.macro.TypedMacro;
@@ -188,19 +193,10 @@ public class JoinLabel extends Function implements TypedMacro {
                                                            .build());
   }
 
-  private static class Link {
-    public Link(Expression<?, ?> sourceId, String targetId, String labelColumn, String targetTable) {
-      this.sourceId = sourceId;
-      this.targetId = targetId;
-      this.labelColumn = labelColumn;
-      this.targetTable = targetTable;
-    }
-
-    public final Expression<?, ?> sourceId;
-    public final String targetId;
-    public final String labelColumn;
-    public final String targetTable;
-  }
+  private record Link(Expression<?, ?> sourceId,
+                      String           targetId,
+                      String           labelColumn,
+                      String           targetTable) {}
 
   static boolean getBooleanParam(NamedArgument namedArg,
                                  String argName,

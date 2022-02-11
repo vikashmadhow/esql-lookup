@@ -4,6 +4,7 @@
 
 package ma.vi.esql.lookup;
 
+import ma.vi.base.config.Configuration;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Postgresql;
 import ma.vi.esql.database.SqlServer;
@@ -24,7 +25,7 @@ public class Databases {
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
           CONFIG_DB_CREATE_CORE_TABLES, true,
-          CONFIG_DB_EXTENSIONS, Set.of(Lookups.class)));
+          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_platform.lookup"))));
     }
     return postgresql;
   }
@@ -36,7 +37,7 @@ public class Databases {
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
           CONFIG_DB_CREATE_CORE_TABLES, true,
-          CONFIG_DB_EXTENSIONS, Set.of(Lookups.class)));
+          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.EMPTY)));
     }
     return sqlServer;
   }
