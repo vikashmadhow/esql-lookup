@@ -61,7 +61,7 @@ test {
   }
 }
 
-group = 'com.vikmad'
+group = 'ma.vi'
 archivesBaseName = 'esql-lookup'
 sourceCompatibility = JavaVersion.VERSION_17
 version = "0.3.0"
