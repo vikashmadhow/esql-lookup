@@ -20,7 +20,7 @@ import static ma.vi.esql.database.Database.*;
 public class Databases {
   public static Postgresql Postgresql() {
     if (postgresql == null) {
-      postgresql = new Postgresql(Map.of(
+      postgresql = new Postgresql(Configuration.of(
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
@@ -32,7 +32,7 @@ public class Databases {
 
   public static SqlServer SqlServer() {
     if (sqlServer == null) {
-      sqlServer = new SqlServer(Map.of(
+      sqlServer = new SqlServer(Configuration.of(
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",

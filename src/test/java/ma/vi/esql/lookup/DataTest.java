@@ -1126,8 +1126,7 @@ public class DataTest {
         Program s = p.parse("create table LkS drop undefined(" +
                                 "  {" +
                                 "    name: 'LkS'," +
-                                "    description: 'LkS test table'," +
-                                "    tm1: from LkS select max(b)" +
+                                "    description: 'LkS test table'" +
                                 "  }, " +
                                 "  _id uuid not null," +
                                 "  a string {" +
@@ -1158,8 +1157,7 @@ public class DataTest {
         s = p.parse("create table a.b.LkT drop undefined(" +
                     "  {" +
                     "    name: 'LkT'," +
-                    "    description: 'LkT test table'," +
-                    "    tm1: from a.b.LkT select max(b)" +
+                    "    description: 'LkT test table'" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a string {" +
@@ -1188,8 +1186,7 @@ public class DataTest {
         s = p.parse("create table a.b.LkX drop undefined(" +
                     "  {" +
                     "    name: 'LkX'," +
-                    "    description: 'LkX test table'," +
-                    "    tm1: from a.b.LkX select max(b)" +
+                    "    description: 'LkX test table'" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a string," +
@@ -1209,9 +1206,7 @@ public class DataTest {
         s = p.parse("create table b.LkY drop undefined(" +
                     "  {" +
                     "    name: 'LkY'," +
-                    "    description: 'LkY test table'," +
-                    "    tm1: from b.LkY select max(b)," +
-                    "    tm2: a > b" +
+                    "    description: 'LkY test table'" +
                     "  }, " +
                     "  _id uuid not null," +
                     "  a int {" +

@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Include changes to the base Configuration object (method param changed to get).
 
+### Fixed
+- Test tables changed to remove non-literals from table metadata, as required by
+  latest ESQL implementation.
+
 ## [0.3.0] - 2022-02-11
 ### Added
 - The schema where the lookup tables are created can be configured on initialisation.
