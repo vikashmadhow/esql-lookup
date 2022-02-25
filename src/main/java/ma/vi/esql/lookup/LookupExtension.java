@@ -20,7 +20,7 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class LookupExtension implements Extension {
   @Override
   public void init(Database db, Configuration config) {
-    String schema = config.param("schema", "_lookup");
+    String schema = config.get("schema", "_lookup");
     log.log(INFO, "Creating lookup tables in " + db + " in schema " + schema);
     try (EsqlConnection c = db.esql(db.pooledConnection())) {
       Parser p = new Parser(db.structure());

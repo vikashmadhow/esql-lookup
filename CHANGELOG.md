@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Planned
+- Remove alt_codes as these are best implemented as linked tables.
+- Virtual tables allowing lookups with links to be queried and updated as a single table.
+
+## [0.3.1] - 2022-02-25
+### Changed
+- Include changes to the base Configuration object (method param changed to get).
+
 ## [0.3.0] - 2022-02-11
 ### Added
 - The schema where the lookup tables are created can be configured on initialisation.
