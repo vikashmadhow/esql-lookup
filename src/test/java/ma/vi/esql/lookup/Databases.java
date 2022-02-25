@@ -10,7 +10,6 @@ import ma.vi.esql.database.Postgresql;
 import ma.vi.esql.database.SqlServer;
 
 import java.util.Map;
-import java.util.Set;
 
 import static ma.vi.esql.database.Database.*;
 
@@ -25,7 +24,8 @@ public class Databases {
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
           CONFIG_DB_CREATE_CORE_TABLES, true,
-          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_platform.lookup"))));
+          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_lookup"))));
+//          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_platform.lookup"))));
     }
     return postgresql;
   }

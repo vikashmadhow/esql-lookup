@@ -12,10 +12,13 @@ import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
 import org.junit.jupiter.api.BeforeAll;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.System.Logger.Level.INFO;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DataTest {
   public static Database[] databases;
@@ -1276,6 +1279,22 @@ public class DataTest {
     if (!first) {
       System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
     }
+  }
+
+  public static boolean matchResult(Result rs, List<Map<String, Object>> expected) {
+    int row = 1;
+    for (Map<String, Object> expectedRow: expected) {
+      rs.toNext();
+      for (Map.Entry<String, Object> col: expectedRow.entrySet()) {
+        String c = col.getKey();
+        Object expectedVal = col.getValue();
+        Object actualVal = rs.value(c);
+        assertEquals(expectedVal, actualVal,
+                     "Row " + row + ", column " + c + ", expected " + expectedVal + ", got " + actualVal);
+      }
+      row++;
+    }
+    return true;
   }
 
   private static final System.Logger log = System.getLogger(DataTest.class.getName());

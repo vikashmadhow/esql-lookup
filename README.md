@@ -1,35 +1,33 @@
 # ESQL lookup functionality as an extension
 This is an extension to [ESQL](https://github.com/vikashmadhow/esql) 
 that creates the tables, macros and functions to work with lookups. A lookup is 
-a table of code and labels such as a list of countries, currencies, cities, etc.
-which can be, additionally, linked among them. For instance, a city may be linked
-to the country that it's in and, in turn, the country can be linked to a continent
-and any international groupings that it belongs to. A lookup value can have any
-number of other values linking to it, and similarly it may link to any number of 
-other values, creating a directed graph.
+a table of code and labels such as a list of countries, currencies, cities, etc.,
+which can be, additionally, linked among themselves. For instance, a city may be 
+linked to the country that it's in and, in turn, the country can be linked to a 
+continent and any international groupings that it belongs to. A lookup value can 
+have any number of other values linking to it, and similarly it may link to any 
+number of other values, creating a directed graph.
 
 ## Using lookups in ESQL
 All extensions are loaded into ESQL when initialising the database by passing the
-extension class in the `database.extensions`. This parameter takes a collection
-of extension classes which are loaded and initialised when the specific implementation 
-of `ma.vi.esql.Database` is created.
+extension class in the `database.extensions`. This parameter takes a map of 
+extension classes and their configuration which are loaded and initialised when 
+the specific implementation of `ma.vi.esql.database.Database` is created.
 
 For example: 
 
-    Database db = new Postgresql(Map.of(
-                      CONFIG_DB_NAME, "test",
-                      CONFIG_DB_USER, "test",
-                      CONFIG_DB_PASSWORD, "test",
-                      CONFIG_DB_CREATE_CORE_TABLES, true,
-                      CONFIG_DB_EXTENSIONS, Set.of(Lookups.class)));
-
+    Database db = new Postgresql(Configuration.of(
+                        CONFIG_DB_NAME, "test",
+                        CONFIG_DB_USER, "test",
+                        CONFIG_DB_PASSWORD, "test",
+                        CONFIG_DB_CREATE_CORE_TABLES, true,
+                        CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.EMPTY)));
 
 ## What is included in this extension
-This extension creates 4 tables: `_platform.lookup.Lookup` which holds information 
-on all defined lookups, `_platform.lookup.LookupLink` which contains information
-on how lookups are linked, `_platform.lookup.LookupValue` which keeps all lookup
-values (codes + labels) and `platform.lookup.LookupValueLink` which links lookup
-values.
+This extension creates 4 tables: `_lookup.Lookup` which holds information on all
+defined lookups, `_lookup.LookupLink` which contains information on how lookups 
+are linked, `_lookup.LookupValue` which keeps all lookup values (codes + labels) 
+and `_lookup.LookupValueLink` which links lookup values.
 
 The following schema shows the tables and their relationships:
 ```
@@ -92,8 +90,8 @@ stored in the database):
 
 ## Functions
 This extension also adds three functions to find labels for lookup values from
-their codes (including the abilitiy to follow links) and to construct labels 
-from tables linked by some keys.
+their codes (including the ability to follow links) and to construct labels from 
+tables linked by some keys.
 
 ### lookuplabel:
 This is a macro which produces a label corresponding to a lookup code. It can 
@@ -148,7 +146,7 @@ The following query:
 ```
   select name, country_code, 
          country:lookuplabel(country_code, 'Country')
-         currency:lookuplabel(country_code, 'Country', 'Currency', show_last_only:=false, label_separator:=', ')
+         currency:lookuplabel(country_code, 'Country', 'Currency', show_last_only=false, label_separator=', ')
     from com.example.Customer;
 ```
 could produce something like this:

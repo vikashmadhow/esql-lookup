@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a single table.
 
 ## [0.3.1] - 2022-02-25
+### Tests
+- All visual tests changed to assertions.
+
 ### Changed
 - Include changes to the base Configuration object (method param changed to get).
 

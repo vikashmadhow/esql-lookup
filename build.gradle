@@ -62,8 +62,6 @@ test {
 }
 
 group = 'ma.vi'
-archivesBaseName = 'esql-lookup'
-sourceCompatibility = JavaVersion.VERSION_17
 version = "0.3.1"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 

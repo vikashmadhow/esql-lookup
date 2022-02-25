@@ -6,13 +6,17 @@ package ma.vi.esql.lookup;
 
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class JoinLabelTest extends DataTest {
@@ -34,8 +38,11 @@ public class JoinLabelTest extends DataTest {
                                   + "(newid(), 'B1', 2, u'" + id1 + "'), "
                                   + "(newid(), 'B2', 4, u'" + id2 + "')");
 
-                     Result rs = con.exec("select a, b, joinlabel(s_id, '_id', 'a', 'LkS') from a.b.LkT");
-                     printResult(rs, 30);
+                     Result rs = con.exec("select a, b, label:joinlabel(s_id, '_id', 'a', 'LkS') from a.b.LkT order by a");
+                     matchResult(rs, Arrays.asList(
+                                        Map.of("a", "B1", "label", "A1"),
+                                        Map.of("a", "B2", "label", "A2")));
+//                     printResult(rs, 30);
                    }
                  }));
   }
@@ -64,10 +71,13 @@ public class JoinLabelTest extends DataTest {
                                   + "(newid(), 'C1', 13, u'" + bid1 + "'), "
                                   + "(newid(), 'C2', 23, u'" + bid2 + "')");
 
-                     Result rs = con.exec("select a, b, a || ' / ' || joinlabel(t_id, '_id', 'a', 'a.b.LkT', " +
+                     Result rs = con.exec("select a, b, label:a || ' / ' || joinlabel(t_id, '_id', 'a', 'a.b.LkT', " +
                                                                                    "'s_id', '_id', 'a', 'LkS', " +
-                                                                                   "last_to_first=false, label_separator='|') from a.b.LkX");
-                     printResult(rs, 30);
+                                                                                   "last_to_first=false, label_separator='|') from a.b.LkX order by a");
+                     matchResult(rs, Arrays.asList(
+                         Map.of("a", "C1", "b", 13, "label", "C1 / B1|A1"),
+                         Map.of("a", "C2", "b", 23, "label", "C2 / B2|A2")));
+//                     printResult(rs, 30);
                    }
                  }));
   }
