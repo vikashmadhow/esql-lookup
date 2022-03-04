@@ -12,6 +12,7 @@ import ma.vi.esql.exec.function.FunctionParam;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.expression.Expression;
+import org.pcollections.PMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +38,11 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LookupLabelFunction extends Function {
+  /**
+   * Creates the lookuplabelf function.
+   * @param schema The database schema in which the lookup stored function will
+   *               be created.
+   */
   public LookupLabelFunction(String schema) {
     super("lookuplabelf", Types.TextType,
           Arrays.asList(new FunctionParam("code", Types.TextType),
@@ -45,11 +51,12 @@ public class LookupLabelFunction extends Function {
   }
 
   @Override
-  public String translate(FunctionCall   call,
-                          Target         target,
-                          EsqlConnection esqlCon,
-                          EsqlPath       path,
-                          Environment    env) {
+  public String translate(FunctionCall         call,
+                          Target               target,
+                          EsqlConnection       esqlCon,
+                          EsqlPath             path,
+                          PMap<String, Object> parameters,
+                          Environment          env) {
     List<Expression<?, ?>> args = call.arguments();
     Expression<?, ?> code = args.get(0);
     Expression<?, ?> linkTable = args.get(1);

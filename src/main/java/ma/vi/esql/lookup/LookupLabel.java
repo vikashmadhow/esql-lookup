@@ -76,6 +76,11 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class LookupLabel extends Function implements TypedMacro {
+  /**
+   * Creates the lookuplabel macro function.
+   * @param schema The database schema in which the lookup tables and functions
+   *               will be created.
+   */
   public LookupLabel(String schema) {
     super("lookuplabel", Types.StringType, emptyList());
     this.schema = schema;
@@ -135,7 +140,7 @@ public class LookupLabel extends Function implements TypedMacro {
       } else if (lookup == null) {
         lookup = arg;
       } else {
-        links.add(((StringLiteral)arg).exec(ESQL, null, path, arg.context.structure));
+        links.add((String)arg.exec(ESQL, null, path, arg.context.structure));
       }
     }
     if (code == null) {

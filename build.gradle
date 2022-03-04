@@ -21,28 +21,30 @@ plugins {
   id 'io.codearte.nexus-staging' version '0.22.0'
 }
 
+group = 'ma.vi'
+version "0.3.2"
+sourceCompatibility = JavaVersion.VERSION_17
+
+project.ext {
+  moduleName = project.group + '.' + project.name
+  isReleaseVersion = !version.endsWith("SNAPSHOT")
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+jar {
+  inputs.property("moduleName", project.moduleName)
+  manifest {
+    attributes('Automatic-Module-Name': project.moduleName)
+  }
+}
+
 repositories {
   mavenLocal()
   mavenCentral()
-}
-
-sourceSets {
-  main {
-    java {
-      srcDirs = ['src/main/java']
-    }
-    resources {
-      srcDirs = ['src/main/resources']
-    }
-  }
-  test {
-    java {
-      srcDirs = ['src/test/java']
-    }
-    resources {
-      srcDirs = ['src/test/resources']
-    }
-  }
 }
 
 dependencies {
@@ -59,15 +61,6 @@ test {
   testLogging {
     events "passed", "skipped", "failed"
   }
-}
-
-group = 'ma.vi'
-version = "0.3.1"
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-
-java {
-  withJavadocJar()
-  withSourcesJar()
 }
 
 publishing {

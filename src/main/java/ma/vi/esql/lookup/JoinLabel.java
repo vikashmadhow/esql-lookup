@@ -65,6 +65,7 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
 public class JoinLabel extends Function implements TypedMacro {
+  /** Creates the joinlabel macro function. */
   public JoinLabel() {
     super("joinlabel", Types.StringType, emptyList());
   }
@@ -110,19 +111,19 @@ public class JoinLabel extends Function implements TypedMacro {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id was provided for one link.");
         }
-        String targetId = ((StringLiteral)i.next()).exec(ESQL, null, path, esql.context.structure);
+        String targetId = (String)i.next().exec(ESQL, null, path, esql.context.structure);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id and target id were provided for one link.");
         }
-        String label = ((StringLiteral)i.next()).exec(ESQL, null, path, esql.context.structure);
+        String label = (String)i.next().exec(ESQL, null, path, esql.context.structure);
 
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
                                        + "link. Only the source id, target id and label were provided for one link.");
         }
-        String table = ((StringLiteral)i.next()).exec(ESQL, null, path, esql.context.structure);
+        String table = (String)i.next().exec(ESQL, null, path, esql.context.structure);
         links.add(new Link(arg, targetId, label, table));
       }
     }
@@ -213,7 +214,7 @@ public class JoinLabel extends Function implements TypedMacro {
                                            String   qualifier,
                                            EsqlPath path) {
     Expression<?, String> e = expr instanceof String s        ? parser.parseExpression(s)
-                            : expr instanceof StringLiteral s ? parser.parseExpression(s.exec(ESQL, null, path, s.context.structure))
+                            : expr instanceof StringLiteral s ? parser.parseExpression((String)s.exec(ESQL, null, path, s.context.structure))
                             : (Expression<?, String>)expr;
     return qualifier == null ? e : qualify(e, qualifier);
   }

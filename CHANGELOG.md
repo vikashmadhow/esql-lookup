@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove alt_codes as these are best implemented as linked tables.
 - Virtual tables allowing lookups with links to be queried and updated as a single table.
 
+## [0.3.2] - 2022-03-05
+### Changed
+- All class elements documented.
+- Gradle build file normalised.
+- Migrated to new ESQL version (0.8.9).
+
 ## [0.3.1] - 2022-02-25
 ### Tests
 - All visual tests changed to assertions.

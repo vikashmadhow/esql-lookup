@@ -186,7 +186,7 @@ public class DataTest {
 
             String sectionId;
             try (Result result = con.exec(p.parse("select _id from _lookup.Lookup where name='TestSection'"))) {
-              result.next();
+              result.toNext();
               sectionId = result.get(1).value().toString();
             }
 
@@ -570,7 +570,7 @@ public class DataTest {
 
             String divisionId;
             try (Result result = con.exec(p.parse("select _id from _lookup.Lookup where name='TestDivision'"))) {
-              result.next();
+              result.toNext();
               divisionId = result.get(1).value().toString();
             }
             con.exec(p.parse("insert into _lookup.LookupValueLink(_id, name, source_value_id, target_value_id) " +
@@ -1113,7 +1113,7 @@ public class DataTest {
             log.log(INFO, "Linking TestClass to TestGroup");
             String groupId;
             try (Result result = con.exec(p.parse("select _id from _lookup.Lookup where name='TestGroup'"))) {
-              result.next();
+              result.toNext();
               groupId = result.get(1).value().toString();
             }
             con.exec(p.parse("insert into _lookup.LookupValueLink(_id, name, source_value_id, target_value_id) " +
