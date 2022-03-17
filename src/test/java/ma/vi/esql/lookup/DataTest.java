@@ -7,6 +7,7 @@ package ma.vi.esql.lookup;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Param;
+import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
@@ -48,9 +49,10 @@ public class DataTest {
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
                                 "values(@id, @name, @description)"),
-                     Param.of("id", id.toString()),
-                     Param.of("name", "TestSection"),
-                     Param.of("description", "Test Section"));
+                     new QueryParams()
+                          .add("id", id.toString())
+                          .add("name", "TestSection")
+                          .add("description", "Test Section"));
 
             con.exec(p.parse("insert into _lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
                                 "(newid(), '" + id + "', 'A', 'en', 'Agriculture forestry and fishing'), " +
@@ -85,9 +87,10 @@ public class DataTest {
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
                                 "values(@id, @name, @description)"),
-                   Param.of("id", id.toString()),
-                   Param.of("name", "TestDivision"),
-                   Param.of("description", "Test Division"));
+                     new QueryParams()
+                      .add("id", id.toString())
+                      .add("name", "TestDivision")
+                      .add("description", "Test Division"));
 
             con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
                                 "values(newid(), 'TestSection', 'Test Section', '" + id + "', " +
@@ -292,9 +295,10 @@ public class DataTest {
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
                                 "values(@id, @name, @description)"),
-                   Param.of("id", id.toString()),
-                   Param.of("name", "TestGroup"),
-                   Param.of("description", "Test group"));
+                     new QueryParams()
+                       .add("id", id.toString())
+                       .add("name", "TestGroup")
+                       .add("description", "Test group"));
 
             con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
                                 "values(newid(), 'TestDivision', 'Test division', '" + id + "', " +
@@ -590,9 +594,10 @@ public class DataTest {
             UUID id = UUID.randomUUID();
             con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
                                 "values(@id, @name, @description)"),
-                   Param.of("id", id.toString()),
-                   Param.of("name", "TestClass"),
-                   Param.of("description", "Test class"));
+                     new QueryParams()
+                       .add("id", id.toString())
+                       .add("name", "TestClass")
+                       .add("description", "Test class"));
 
             con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
                                 "values(newid(), 'TestGroup', 'Test Group', '" + id + "', " +
