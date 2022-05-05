@@ -1,6 +1,6 @@
 package ma.vi.esql.lookup;
 
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
 import org.junit.jupiter.api.DynamicTest;
@@ -22,7 +22,7 @@ class LookupLabelTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                   try (EsqlConnection con = db.esql()) {
                      con.exec("delete t from t:a.b.LkT");
                      con.exec("delete s from s:LkS");
                      con.exec("insert into LkS(_id, a, b, i) values "
@@ -61,7 +61,7 @@ class LookupLabelTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                   try (EsqlConnection con = db.esql()) {
                      con.exec("delete t from t:a.b.LkT");
                      con.exec("delete s from s:LkS");
                      con.exec("insert into LkS(_id, a, b, i) values "
@@ -100,7 +100,7 @@ class LookupLabelTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                   try (EsqlConnection con = db.esql()) {
                      con.exec("delete t from t:a.b.LkT");
                      con.exec("delete s from s:LkS");
                      con.exec("insert into LkS(_id, a, b, i) values "
@@ -139,7 +139,7 @@ class LookupLabelTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                   try (EsqlConnection con = db.esql()) {
                      con.exec("delete t from t:a.b.LkT");
                      con.exec("delete s from s:LkS");
                      con.exec("insert into LkS(_id, a, b, i) values "
@@ -178,7 +178,7 @@ class LookupLabelTest extends DataTest {
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
                    Parser p = new Parser(db.structure());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                   try (EsqlConnection con = db.esql()) {
                      con.exec("delete t from t:a.b.LkT");
                      con.exec("delete s from s:LkS");
                      con.exec("insert into LkS(_id, a, b, i) values "

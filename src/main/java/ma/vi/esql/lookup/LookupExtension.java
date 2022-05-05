@@ -2,9 +2,9 @@ package ma.vi.esql.lookup;
 
 import ma.vi.base.config.Configuration;
 import ma.vi.esql.database.Database;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
@@ -22,7 +22,7 @@ public class LookupExtension implements Extension {
   public void init(Database db, Configuration config) {
     String schema = config.get("schema", "_lookup");
     log.log(INFO, "Creating lookup tables in " + db + " in schema " + schema);
-    try (EsqlConnection c = db.esql(db.pooledConnection())) {
+    try (EsqlConnection c = db.esql()) {
       Parser p = new Parser(db.structure());
 
       ///////////////////////////////////////////////////////////////////////////

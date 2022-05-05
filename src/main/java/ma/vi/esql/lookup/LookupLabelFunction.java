@@ -4,7 +4,7 @@
 
 package ma.vi.esql.lookup;
 
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.env.Environment;
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;

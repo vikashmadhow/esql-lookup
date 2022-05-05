@@ -4,7 +4,7 @@
 
 package ma.vi.esql.lookup;
 
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
@@ -25,7 +25,7 @@ public class JoinLabelTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                   try (EsqlConnection con = db.esql()) {
                      con.exec("delete LkT from a.b.LkT");
                      con.exec("delete s from s:LkS");
 
@@ -52,7 +52,7 @@ public class JoinLabelTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
-                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                   try (EsqlConnection con = db.esql()) {
                      con.exec("delete LkX from a.b.LkX");
                      con.exec("delete LkT from a.b.LkT");
                      con.exec("delete s from s:LkS");

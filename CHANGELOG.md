@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove alt_codes as these are best implemented as linked tables.
 - Virtual tables allowing lookups with links to be queried and updated as a single table.
 
+## [0.3.4] - 2022-05-05
+### Changed
+- Comply with ESQL version 0.9.4.
+
 ## [0.3.3] - 2022-03-17
 ### Changed
 - Comply with ESQL version 0.9.1.
