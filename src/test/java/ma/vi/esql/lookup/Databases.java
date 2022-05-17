@@ -23,7 +23,6 @@ public class Databases {
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_CREATE_CORE_TABLES, true,
           CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_lookup"))));
 //          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_platform.lookup"))));
     }
@@ -36,7 +35,6 @@ public class Databases {
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_CREATE_CORE_TABLES, true,
           CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.EMPTY)));
     }
     return sqlServer;

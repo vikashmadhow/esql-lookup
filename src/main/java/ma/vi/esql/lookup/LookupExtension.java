@@ -41,10 +41,10 @@ public class LookupExtension implements Extension {
           "  }" +
           "}," +
 
-          "_id uuid not null, " +
-          "_version long not null default 0, " +
-          "_can_delete bool not null default true, " +
-          "_can_edit bool not null default true, " +
+          "_id uuid not null," +
+          "_version long not null default 0," +
+          "_can_delete bool not null default true," +
+          "_can_edit bool not null default true," +
 
           "name string not null {" +
           "  validate_unique: true, " +
@@ -162,7 +162,7 @@ public class LookupExtension implements Extension {
      * required when using the function-based lookup label resolution).
      */
     if (db.target() == POSTGRESQL) {
-      try (Connection c = db.pooledConnection(true, -1)) {
+      try (Connection c = db.pooledConnection()) {
         // lookup label with no links
         c.createStatement().executeUpdate("""
             create or replace function "%1$s".lookup_label(code text,
@@ -234,13 +234,14 @@ public class LookupExtension implements Extension {
                 execute query into result;
                 return result;
             end;
-            $$ language plpgsql immutable;
-            """.formatted(schema));
+            $$ language plpgsql immutable;""".formatted(schema));
+
+        c.commit();
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
     } else if (db.target() == SQLSERVER) {
-      try (Connection c = db.pooledConnection(true, -1)) {
+      try (Connection c = db.pooledConnection()) {
         // function to find value from lookups
         c.createStatement().executeUpdate("""
             create or alter function "%1$s".lookup_label0(@Code      nvarchar(max),
@@ -435,6 +436,8 @@ public class LookupExtension implements Extension {
               return @Result;
             end;
             """.formatted(schema));
+
+        c.commit();
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
