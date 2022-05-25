@@ -1135,7 +1135,7 @@ public class DataTest {
                                 "  {" +
                                 "    name: 'LkS'," +
                                 "    description: 'LkS test table'" +
-                                "  }, " +
+                                "  } " +
                                 "  _id uuid not null," +
                                 "  a string {" +
                                 "    m1: b > 5," +
@@ -1166,7 +1166,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkT'," +
                     "    description: 'LkT test table'" +
-                    "  }, " +
+                    "  } " +
                     "  _id uuid not null," +
                     "  a string {" +
                     "    m1: b > 5," +
@@ -1195,7 +1195,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkX'," +
                     "    description: 'LkX test table'" +
-                    "  }, " +
+                    "  } " +
                     "  _id uuid not null," +
                     "  a string," +
                     "  b int {" +
@@ -1215,7 +1215,7 @@ public class DataTest {
                     "  {" +
                     "    name: 'LkY'," +
                     "    description: 'LkY test table'" +
-                    "  }, " +
+                    "  } " +
                     "  _id uuid not null," +
                     "  a int {" +
                     "    m1: b > 5," +

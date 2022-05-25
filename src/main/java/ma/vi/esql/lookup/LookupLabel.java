@@ -56,10 +56,9 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * lookuplabel can have the following optional named arguments to control the
  * value displayed:
  * <ul>
- * <li><b>show_code:</b> whether to show the code in the label or not.
- *                       Default is true.</li>
- * <li><b>show_text:</b> whether to show the label text in the label or not.
- *                       Default is true.</li>
+ * <li><b>show_code:</b> whether to show the code in the label. Default is true.</li>
+ * <li><b>show_label:</b> whether to show the label. Default is true.</li>
+ * <li><b>show_description:</b> whether to show the description. Default is false.</li>
  * <li><b>code_separator:</b> an expression for the separator between the code
  *                            and text. Default is ' - '</li>
  * <li><b>show_last_only:</b> Show the last label element in the chain only
@@ -102,32 +101,35 @@ public class LookupLabel extends Function implements TypedMacro {
     /*
      * Load arguments included named arguments and links.
      */
-    Expression<?, ?> code           = null;                                   // The code to search a label for.
-    Expression<?, ?> lookup         = null;                                   // The lookup to which the code belongs to.
-    List<String>     links          = new ArrayList<>();                      // lookup links.
-    boolean          showCode       = true;                                   // show the code in the label or not.
-    boolean          showText       = true;                                   // show the text in the label or not.
-    Expression<?, ?> codeSeparator  = new StringLiteral(ctx, "' - '");  // the separator to use between code and text in the label.
-    boolean          showLastOnly   = true;                                   // show only the last element (last linked foreign table) of the join.
-    Expression<?, ?> labelSeparator = new StringLiteral(ctx, "' / '");  // the separator to use between labels from different table (joins).
-    boolean          lastToFirst    = true;                                   // show labels last to first (or first to last if false).
-    String           matchBy        = "code";                                 // Match by code, alt_code1 or alt_code2. Default is code.
+    Expression<?, ?> code            = null;                                   // The code to search a label for.
+    Expression<?, ?> lookup          = null;                                   // The lookup to which the code belongs to.
+    List<String>     links           = new ArrayList<>();                      // lookup links.
+    boolean          showCode        = true;                                   // show the code or not.
+    boolean          showLabel       = true;                                   // show the label or not.
+    boolean          showDescription = false;                                  // show the description or not.
+    Expression<?, ?> codeSeparator   = new StringLiteral(ctx, "' - '");  // the separator to use between code and text in the label.
+    boolean          showLastOnly    = true;                                   // show only the last element (last linked foreign table) of the join.
+    Expression<?, ?> labelSeparator  = new StringLiteral(ctx, "' / '");  // the separator to use between labels from different table (joins).
+    boolean          lastToFirst     = true;                                   // show labels last to first (or first to last if false).
+    String           matchBy         = "code";                                 // Match by code, alt_code1 or alt_code2. Default is code.
 
     for (Expression<?, ?> arg: arguments) {
       if (arg instanceof NamedArgument namedArg) {
         switch (namedArg.name()) {
-          case "show_code"       -> showCode       = getBooleanParam(namedArg, "show_code", path);
-          case "show_text"       -> showText       = getBooleanParam(namedArg, "show_text", path);
-          case "code_separator"  -> codeSeparator  = namedArg.arg();
-          case "show_last_only"  -> showLastOnly   = getBooleanParam(namedArg, "show_last_only", path);
-          case "last_to_first"   -> lastToFirst    = getBooleanParam(namedArg, "last_to_first", path);
-          case "label_separator" -> labelSeparator = namedArg.arg();
-          case "match_by"        -> matchBy        = namedArg.arg().translate(ESQL);
-          default                -> throw new TranslationException("""
+          case "show_code"        -> showCode        = getBooleanParam(namedArg, "show_code", path);
+          case "show_label"       -> showLabel       = getBooleanParam(namedArg, "show_label", path);
+          case "show_description" -> showDescription = getBooleanParam(namedArg, "show_description", path);
+          case "code_separator"   -> codeSeparator   = namedArg.arg();
+          case "show_last_only"   -> showLastOnly    = getBooleanParam(namedArg, "show_last_only", path);
+          case "last_to_first"    -> lastToFirst     = getBooleanParam(namedArg, "last_to_first", path);
+          case "label_separator"  -> labelSeparator  = namedArg.arg();
+          case "match_by"         -> matchBy         = namedArg.arg().translate(ESQL);
+          default                 -> throw new TranslationException("""
                                                                    Invalid named argument in lookuplabel: %1s
                                                                    lookuplabel recognises the following named arguments:
                                                                    show_code: whether to show the code in the label or not. Default is true.
-                                                                   show_text: whether to show the label or not. Default is true.
+                                                                   show_label: whether to show the label or not. Default is true.
+                                                                   show_description: whether to show the description or not. Default is false.
                                                                    code_separator: the separator between the code and text. Default is ' - '
                                                                    show_last_only: Show the last label element in the chain only (a -> b -> c, show c only). Default is true.
                                                                    label_separator: the separator between the labels from different lookups. Default is '/'.
@@ -181,7 +183,8 @@ public class LookupLabel extends Function implements TypedMacro {
     String lookupAlias = uniqueName.a;
     aliasIndex = uniqueName.b;
 
-    Expression<?, String> value = label(ctx, showText, showCode, matchBy, fromValueAlias, codeSeparator);
+    Expression<?, String> value = label(ctx, showCode, showLabel, showDescription,
+                                        matchBy, fromValueAlias, codeSeparator);
 
     /*
      * from LookupValue v0
@@ -226,7 +229,8 @@ public class LookupLabel extends Function implements TypedMacro {
                                             new ColumnRef(ctx, toLinkAlias, "target_value_id"),
                                             new ColumnRef(ctx, toValueAlias, "_id")));
 
-      Expression<?, String> label = label(ctx, showText, showCode, matchBy, toValueAlias, codeSeparator);
+      Expression<?, String> label = label(ctx, showCode, showLabel, showDescription,
+                                          matchBy, toValueAlias, codeSeparator);
       value = showLastOnly ? label :
               lastToFirst  ? new Concatenation(ctx, asList(label, labelSeparator, value)) :
                              new Concatenation(ctx, asList(value, labelSeparator, label));
@@ -242,30 +246,28 @@ public class LookupLabel extends Function implements TypedMacro {
   }
 
   private static Expression<?, String> label(Context ctx,
-                                             boolean showText,
                                              boolean showCode,
+                                             boolean showLabel,
+                                             boolean showDescription,
                                              String matchBy,
                                              String alias,
                                              Expression<?, ?> codeSeparator) {
-    Expression<?, String> label;
-    if (!showText) {
-      /*
-       * Show code only
-       */
-      label = new ColumnRef(ctx, alias, matchBy);
-    } else {
-      label = new ColumnRef(ctx, alias, "label");
-      if (showCode) {
-        /*
-         * Prepend code and separator
-         */
-        label = new Concatenation(ctx,
-                                  asList(new ColumnRef(ctx, alias, matchBy),
-                                         codeSeparator,
-                                         label));
-      }
-    }
+    Expression<?, String> label = null;
+    if (showCode)        label = addToLabel(ctx, label, alias, matchBy, codeSeparator);
+    if (showLabel)       label = addToLabel(ctx, label, alias, "label", codeSeparator);
+    if (showDescription) label = addToLabel(ctx, label, alias, "description", codeSeparator);
     return label;
+  }
+
+  private static Expression<?, String> addToLabel(Context               ctx,
+                                                  Expression<?, String> label,
+                                                  String                alias,
+                                                  String                column,
+                                                  Expression<?, ?>      codeSeparator) {
+    ColumnRef expr = new ColumnRef(ctx, alias, column);
+    return label == null
+         ? expr
+         : new Concatenation(ctx, asList(label, codeSeparator, expr));
   }
 
   /**

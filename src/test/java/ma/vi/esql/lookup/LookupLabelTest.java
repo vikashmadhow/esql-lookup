@@ -195,7 +195,7 @@ class LookupLabelTest extends DataTest {
 
                      Result rs = con.exec(
                          "select i, " +
-                             "label:lookuplabel(show_last_only=false, last_to_first=false, show_code=true, show_text=false," +
+                             "label:lookuplabel(show_last_only=false, last_to_first=false, show_code=true, show_label=false," +
                              "            i, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection') " +
                              "from LkS order by i");
                      matchResult(rs,

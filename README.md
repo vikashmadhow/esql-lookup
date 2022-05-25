@@ -105,7 +105,8 @@ link to `Y` and then `Z` and return the label for the latter.
 `lookuplabel` takes the following optional named arguments to control how the 
 label is produced:
 * **show_code**: whether to show the code in the label or not. Default is true.
-* **show_text**: whether to show the label text in the label or not. Default is true.
+* **show_label**: whether to show the value label. Default is true.
+* **show_description**: whether to show the value description. Default is false.
 * **code_separator**: an expression for the separator between the code and text. Default is ' - '
 * **show_last_only**: Show the last label element in the chain only (a -> b -> c, show c only). Default is true.
 * **label_separator**: an expression for the separator between the labels from different lookups. Default is '/'.

@@ -22,7 +22,7 @@ plugins {
 }
 
 group = 'ma.vi'
-version "0.3.5"
+version "0.3.6"
 sourceCompatibility = JavaVersion.VERSION_17
 
 project.ext {

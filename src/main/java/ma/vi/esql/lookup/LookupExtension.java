@@ -39,7 +39,7 @@ public class LookupExtension implements Extension {
           "      label: 'Lookup Links'" +
           "    }" +
           "  }" +
-          "}," +
+          "} " +
 
           "_id uuid not null," +
           "_version long not null default 0," +
@@ -59,7 +59,7 @@ public class LookupExtension implements Extension {
           "create table " + schema + ".LookupLink drop undefined({" +
           "  name: 'Lookup Link', " +
           "  description: 'The definition of links between values of lookup tables which are used for searching data by associations and for aggregating data in reports'" +
-          "}, " +
+          "} " +
 
           "_id uuid not null, " +
           "_version long not null default 0, " +
@@ -103,7 +103,7 @@ public class LookupExtension implements Extension {
           "      label: 'Lookup Value Links'" +
           "    }" +
           "  }" +
-          "}, " +
+          "} " +
 
           "_id uuid not null, " +
           "_version long not null default 0, " +
@@ -117,6 +117,7 @@ public class LookupExtension implements Extension {
           "alt_code1 string, " +
           "alt_code2 string, " +
           "label string not null, " +
+          "description text, " +
           "lang string not null default 'en' {" +
           "  label: 'Language', " +
           "  initial_value: 'en' " +
@@ -130,7 +131,7 @@ public class LookupExtension implements Extension {
           "create table " + schema + ".LookupValueLink drop undefined({" +
           "  name: 'Lookup Value Link', " +
           "  description: 'Links between values of lookup tables, used primarily for searching data by associations and for aggregating data in reports'" +
-          "}, " +
+          "} " +
 
           "_id uuid not null, " +
           "_version long not null default 0, " +

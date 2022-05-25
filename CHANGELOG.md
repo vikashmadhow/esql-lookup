@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove alt_codes as these are best implemented as linked tables.
 - Virtual tables allowing lookups with links to be queried and updated as a single table.
 
+## [0.3.6] - 2022-05-25
+### Changed
+- Comply with ESQL version 0.9.7 (syntax change to `create table` where comma is 
+  not allowed after table metadata, metadata at start of statement only, etc.).
+- Additional information added as `description` to lookup values.
+- `lookuplabel` macro changed to have an option controlling whether to include the
+  description (default is false) in the label produced.
+- `show_text` parameter has been renamed to `show_label` in `lookuplabel` macro.
+
 ## [0.3.5] - 2022-05-17
 ### Changed
 - Comply with ESQL version 0.9.6.
