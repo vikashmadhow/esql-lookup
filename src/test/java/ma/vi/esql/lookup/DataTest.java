@@ -36,7 +36,7 @@ public class DataTest {
     for (Database db: databases) {
       System.out.println(db.target());
       Parser p = new Parser(db.structure());
-      try (EsqlConnection con = db.esql(db.pooledConnection())) {
+      try (EsqlConnection con = db.esql()) {
         con.exec("delete l from l:_lookup.LookupValueLink");
         con.exec("delete l from l:_lookup.LookupValue");
         con.exec("delete l from l:_lookup.LookupLink");
