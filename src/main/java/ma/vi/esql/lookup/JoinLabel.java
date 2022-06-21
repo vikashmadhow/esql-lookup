@@ -188,7 +188,7 @@ public class JoinLabel extends Function implements TypedMacro {
                              new Concatenation(ctx, asList(value, labelSeparator, label));
       fromAlias = toAlias;
     }
-    return new SelectExpression(ctx, new SelectBuilder(ctx).column(value, null)
+    return new SelectExpression(ctx, new SelectBuilder(ctx).column(value, "label")
                                                            .from(from)
                                                            .where(new Equality(ctx, firstTargetId, firstSourceId))
                                                            .build());
@@ -200,8 +200,8 @@ public class JoinLabel extends Function implements TypedMacro {
                       String           targetTable) {}
 
   static boolean getBooleanParam(NamedArgument namedArg,
-                                 String argName,
-                                 EsqlPath path) {
+                                 String        argName,
+                                 EsqlPath      path) {
     Object value = namedArg.arg().exec(ESQL, null, path, namedArg.context.structure);
     if (value != null && !(value instanceof Boolean)) {
       throw new TranslationException(argName + " must be a boolean value (" + namedArg.arg() + " was provided)");

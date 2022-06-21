@@ -237,7 +237,7 @@ public class LookupLabel extends Function implements TypedMacro {
       fromValueAlias = toValueAlias;
     }
     return new SelectExpression(ctx, new SelectBuilder(ctx)
-                                           .column(value, null)
+                                           .column(value, "label")
                                            .from(from)
                                            .where(new Equality(ctx,
                                                                new ColumnRef(ctx, firstFromValueAlias, matchBy),
@@ -253,9 +253,9 @@ public class LookupLabel extends Function implements TypedMacro {
                                              String alias,
                                              Expression<?, ?> codeSeparator) {
     Expression<?, String> label = null;
-    if (showCode)        label = addToLabel(ctx, label, alias, matchBy, codeSeparator);
-    if (showLabel)       label = addToLabel(ctx, label, alias, "label", codeSeparator);
-    if (showDescription) label = addToLabel(ctx, label, alias, "description", codeSeparator);
+    if (showCode)         label = addToLabel(ctx, label, alias, matchBy, codeSeparator);
+    if (showLabel)        label = addToLabel(ctx, label, alias, "label", codeSeparator);
+    if (showDescription)  label = addToLabel(ctx, label, alias, "description", codeSeparator);
     return label;
   }
 
