@@ -13,10 +13,8 @@ import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
-import ma.vi.esql.syntax.expression.ColumnRef;
-import ma.vi.esql.syntax.expression.Concatenation;
-import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.SelectExpression;
+import ma.vi.esql.syntax.define.Define;
+import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
@@ -87,6 +85,14 @@ public class LookupLabel extends Function implements TypedMacro {
 
   @Override
   public Esql<?, ?> expand(Esql<?, ?> esql, EsqlPath path) {
+    if (path.hasAncestor(Define.class, UncomputedExpression.class)) {
+      /*
+       * Do not expand in Define statement (create/alter table/struct) or in
+       * uncomputed expression as the expansion to a select will not work in most
+       * cases when executed on the client-side.
+       */
+      return esql;
+    }
     FunctionCall call = (FunctionCall)esql;
     Context ctx = call.context;
     List<Expression<?, ?>> arguments = call.arguments();

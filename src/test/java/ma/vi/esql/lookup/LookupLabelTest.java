@@ -3,6 +3,7 @@ package ma.vi.esql.lookup;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -56,6 +57,20 @@ class LookupLabelTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> execLookupLabel() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel('0115', 'TestClass')");
+                     rs.toNext();
+                     Assertions.assertEquals("0115 - Growing of tobacco", rs.value(1));
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> lookupLinkedLabel() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
@@ -90,6 +105,34 @@ class LookupLabelTest extends DataTest {
                                     Map.of("i", "4532", "label", "453 - Sale of motor vehicles parts and accessories"),
                                     Map.of("i", "5811", "label", "581 - Publishing of books, periodicals and other publishing activities")));
 //                     printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> execLookupLinkedLabel() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel('0115', 'TestClass', 'TestGroup')");
+                     rs.toNext();
+                     Assertions.assertEquals("011 - Growing of non-perennial crops", rs.value(1));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> execLookupMultipleLinkedLabel() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel('0115', 'TestClass', 'TestGroup', 'TestDivision', 'TestSection')");
+                     rs.toNext();
+                     Assertions.assertEquals("A - Agriculture forestry and fishing", rs.value(1));
                    }
                  }));
   }

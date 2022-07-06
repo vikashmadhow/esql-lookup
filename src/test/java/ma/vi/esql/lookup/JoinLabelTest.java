@@ -42,7 +42,10 @@ public class JoinLabelTest extends DataTest {
                      matchResult(rs, Arrays.asList(
                                         Map.of("a", "B1", "label", "A1"),
                                         Map.of("a", "B2", "label", "A2")));
-//                     printResult(rs, 30);
+
+                     rs = con.exec("joinlabel('" + id1 + "', '_id', 'a', 'LkS')");
+                     rs.toNext();
+                     assertEquals("A1", rs.value(1));
                    }
                  }));
   }
@@ -77,7 +80,12 @@ public class JoinLabelTest extends DataTest {
                      matchResult(rs, Arrays.asList(
                          Map.of("a", "C1", "b", 13, "label", "C1 / B1|A1"),
                          Map.of("a", "C2", "b", 23, "label", "C2 / B2|A2")));
-//                     printResult(rs, 30);
+
+                     rs = con.exec("joinlabel('" + bid1 + "', '_id', 'a', 'a.b.LkT', " +
+                                        "'s_id', '_id', 'a', 'LkS', " +
+                                        "last_to_first=false, label_separator='|')");
+                     rs.toNext();
+                     assertEquals("B1|A1", rs.value(1));
                    }
                  }));
   }
