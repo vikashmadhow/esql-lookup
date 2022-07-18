@@ -6,7 +6,6 @@ package ma.vi.esql.lookup;
 
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
-import ma.vi.esql.exec.Param;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
@@ -1128,6 +1127,255 @@ public class DataTest {
                                 "         where target.code=left(lv.code, 3) " +
                                 "           and target.lookup_id='" + groupId + "') " +
                                 "from lv:_lookup.LookupValue where lv.lookup_id='" + id + "'"));
+          }
+        }
+
+        try (Result rs = con.exec("select _id from _lookup.Lookup where name='Country'")) {
+          if (!rs.toNext()) {
+            String countryLookupId = UUID.randomUUID().toString();
+            con.exec("insert into _lookup.Lookup(_id, _can_delete, name, description) " +
+                       "values('" + countryLookupId + "', false, 'Country', 'Countries with their ISO alphabetic code')");
+
+            con.exec("insert into _lookup.LookupValue" +
+                       "(_id,     _can_delete, lookup_id,            code, alt_code1, alt_code2, lang, label) values " +
+                       "(newid(), false, '" + countryLookupId + "', 'AF', 'AFG', '4',   'en', 'Afghanistan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AL', 'ALB', '8',   'en', 'Albania'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'DZ', 'DZA', '12',  'en', 'Algeria'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AS', 'ASM', '16',  'en', 'American Samoa'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AD', 'AND', '20',  'en', 'Andorra'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AO', 'AGO', '24',  'en', 'Angola'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AG', 'ATG', '28',  'en', 'Antigua And Barbuda'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AZ', 'AZE', '31',  'en', 'Azerbaijan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AR', 'ARG', '32',  'en', 'Argentina'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AU', 'AUS', '36',  'en', 'Australia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AT', 'AUT', '40',  'en', 'Austria'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BS', 'BHS', '44',  'en', 'Bahamas'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BH', 'BHR', '48',  'en', 'Bahrain'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BD', 'BGD', '50',  'en', 'Bangladesh'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AM', 'ARM', '51',  'en', 'Armenia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BB', 'BRB', '52',  'en', 'Barbados'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BE', 'BEL', '56',  'en', 'Belgium'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BM', 'BMU', '60',  'en', 'Bermuda'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BT', 'BTN', '64',  'en', 'Bhutan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BO', 'BOL', '68',  'en', 'Bolivia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BA', 'BIH', '70',  'en', 'Bosnia And Herzegowina'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BW', 'BWA', '72',  'en', 'Botswana'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BV', 'BVT', '74',  'en', 'Bouvet Island'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BR', 'BRA', '76',  'en', 'Brazil'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BZ', 'BLZ', '84',  'en', 'Belize'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IO', 'IOT', '86',  'en', 'British Indian Ocean Territory'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SB', 'SLB', '90',  'en', 'Solomon Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'VG', 'VGB', '92',  'en', 'Virgin Islands (British)'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BN', 'BRN', '96',  'en', 'Brunei Darussalam'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BG', 'BGR', '100', 'en', 'Bulgaria'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MM', 'MMR', '104', 'en', 'Myanmar'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BI', 'BDI', '108', 'en', 'Burundi'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BY', 'BLR', '112', 'en', 'Belarus'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KH', 'KHM', '116', 'en', 'Cambodia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CM', 'CMR', '120', 'en', 'Cameroon'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CA', 'CAN', '124', 'en', 'Canada'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CV', 'CPV', '132', 'en', 'Cape Verde'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KY', 'CYM', '136', 'en', 'Cayman Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CF', 'CAF', '140', 'en', 'Central African Republic'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LK', 'LKA', '144', 'en', 'Sri Lanka'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TD', 'TCD', '148', 'en', 'Chad'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CL', 'CHL', '152', 'en', 'Chile'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CN', 'CHN', '156', 'en', 'China'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TW', 'TWN', '158', 'en', 'Taiwan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CX', 'CXR', '162', 'en', 'Christmas Island'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CC', 'CCK', '166', 'en', 'Cocos (Keeling) Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CO', 'COL', '170', 'en', 'Colombia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KM', 'COM', '174', 'en', 'Comoros'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'YT', 'MYT', '175', 'en', 'Mayotte'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CG', 'COG', '178', 'en', 'Congo'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ZR', 'ZAR', '180', 'en', 'Democratic Republic Of Congo'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CK', 'COK', '184', 'en', 'Cook Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CR', 'CRI', '188', 'en', 'Costa Rica'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'HR', 'HRV', '191', 'en', 'Croatia (Local Name: Hrvatska)'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CU', 'CUB', '192', 'en', 'Cuba'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CY', 'CYP', '196', 'en', 'Cyprus'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CZ', 'CZE', '203', 'en', 'Czech Republic'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BJ', 'BEN', '204', 'en', 'Benin'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'DK', 'DNK', '208', 'en', 'Denmark'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'DM', 'DMA', '212', 'en', 'Dominica'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'DO', 'DOM', '214', 'en', 'Dominican Republic'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'EC', 'ECU', '218', 'en', 'Ecuador'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SV', 'SLV', '222', 'en', 'El Salvador'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GQ', 'GNQ', '226', 'en', 'Equatorial Guinea'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ET', 'ETH', '231', 'en', 'Ethiopia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ER', 'ERI', '232', 'en', 'Eritrea'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'EE', 'EST', '233', 'en', 'Estonia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'FO', 'FRO', '234', 'en', 'Faroe Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'FK', 'FLK', '238', 'en', 'Falkland Islands (Malvinas)'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GS', 'SGS', '239', 'en', 'South Georgia And The South Sandwich Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'FJ', 'FJI', '242', 'en', 'Fiji'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'FI', 'FIN', '246', 'en', 'Finland'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'FR', 'FRA', '250', 'en', 'France'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GF', 'GUF', '254', 'en', 'French Guiana'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PF', 'PYF', '258', 'en', 'French Polynesia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TF', 'ATF', '260', 'en', 'French Southern Territories'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'DJ', 'DJI', '262', 'en', 'Djibouti'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GA', 'GAB', '266', 'en', 'Gabon'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GE', 'GEO', '268', 'en', 'Georgia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GM', 'GMB', '270', 'en', 'Gambia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'DE', 'DEU', '276', 'en', 'Germany'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GH', 'GHA', '288', 'en', 'Ghana'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GI', 'GIB', '292', 'en', 'Gibraltar'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KI', 'KIR', '296', 'en', 'Kiribati'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GR', 'GRC', '300', 'en', 'Greece'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GL', 'GRL', '304', 'en', 'Greenland'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GD', 'GRD', '308', 'en', 'Grenada'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GP', 'GLP', '312', 'en', 'Guadeloupe'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GU', 'GUM', '316', 'en', 'Guam'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GT', 'GTM', '320', 'en', 'Guatemala'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GN', 'GIN', '324', 'en', 'Guinea'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GY', 'GUY', '328', 'en', 'Guyana'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'HT', 'HTI', '332', 'en', 'Haiti'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'HM', 'HMD', '334', 'en', 'Heard And Mc Donald Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'VA', 'VAT', '336', 'en', 'Holy See (Vatican City State)'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'HN', 'HND', '340', 'en', 'Honduras'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'HK', 'HKG', '344', 'en', 'Hong Kong'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'HU', 'HUN', '348', 'en', 'Hungary'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IS', 'ISL', '352', 'en', 'Iceland'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IN', 'IND', '356', 'en', 'India'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ID', 'IDN', '360', 'en', 'Indonesia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IR', 'IRN', '364', 'en', 'Iran (Islamic Republic Of)'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IQ', 'IRQ', '368', 'en', 'Iraq'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IE', 'IRL', '372', 'en', 'Ireland'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IL', 'ISR', '376', 'en', 'Israel'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IT', 'ITA', '380', 'en', 'Italy'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CI', 'CIV', '384', 'en', 'Cote D''Ivoire'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'JM', 'JAM', '388', 'en', 'Jamaica'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'JP', 'JPN', '392', 'en', 'Japan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KZ', 'KAZ', '398', 'en', 'Kazakhstan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'JO', 'JOR', '400', 'en', 'Jordan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KE', 'KEN', '404', 'en', 'Kenya'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KP', 'PRK', '408', 'en', 'Korea, Democratic People''s Republic Of'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KR', 'KOR', '410', 'en', 'Korea, Republic Of'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KW', 'KWT', '414', 'en', 'Kuwait'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KG', 'KGZ', '417', 'en', 'Kyrgyzstan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LA', 'LAO', '418', 'en', 'Lao People''s Democratic Republic'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LB', 'LBN', '422', 'en', 'Lebanon'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LS', 'LSO', '426', 'en', 'Lesotho'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LV', 'LVA', '428', 'en', 'Latvia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LR', 'LBR', '430', 'en', 'Liberia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LY', 'LBY', '434', 'en', 'Libyan Arab Jamahiriya'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LI', 'LIE', '438', 'en', 'Liechtenstein'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LT', 'LTU', '440', 'en', 'Lithuania'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LU', 'LUX', '442', 'en', 'Luxembourg'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MO', 'MAC', '446', 'en', 'Macau'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MG', 'MDG', '450', 'en', 'Madagascar'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MW', 'MWI', '454', 'en', 'Malawi'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MY', 'MYS', '458', 'en', 'Malaysia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MV', 'MDV', '462', 'en', 'Maldives'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ML', 'MLI', '466', 'en', 'Mali'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MT', 'MLT', '470', 'en', 'Malta'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MQ', 'MTQ', '474', 'en', 'Martinique'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MR', 'MRT', '478', 'en', 'Mauritania'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MU', 'MUS', '480', 'en', 'Mauritius'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MX', 'MEX', '484', 'en', 'Mexico'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MC', 'MCO', '492', 'en', 'Monaco'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MN', 'MNG', '496', 'en', 'Mongolia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MD', 'MDA', '498', 'en', 'Moldova, Republic Of'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MS', 'MSR', '500', 'en', 'Montserrat'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MA', 'MAR', '504', 'en', 'Morocco'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MZ', 'MOZ', '508', 'en', 'Mozambique'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'OM', 'OMN', '512', 'en', 'Oman'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NA', 'NAM', '516', 'en', 'Namibia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NR', 'NRU', '520', 'en', 'Nauru'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NP', 'NPL', '524', 'en', 'Nepal'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NL', 'NLD', '528', 'en', 'Netherlands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AN', 'ANT', '530', 'en', 'Netherlands Antilles'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AW', 'ABW', '533', 'en', 'Aruba'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NC', 'NCL', '540', 'en', 'New Caledonia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'VU', 'VUT', '548', 'en', 'Vanuatu'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NZ', 'NZL', '554', 'en', 'New Zealand'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NI', 'NIC', '558', 'en', 'Nicaragua'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NE', 'NER', '562', 'en', 'Niger'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NG', 'NGA', '566', 'en', 'Nigeria'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NU', 'NIU', '570', 'en', 'Niue'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NF', 'NFK', '574', 'en', 'Norfolk Island'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'NO', 'NOR', '578', 'en', 'Norway'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MP', 'MNP', '580', 'en', 'Northern Mariana Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'UM', 'UMI', '581', 'en', 'United States Minor Outlying Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'FM', 'FSM', '583', 'en', 'Micronesia, Federated States Of'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MH', 'MHL', '584', 'en', 'Marshall Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PW', 'PLW', '585', 'en', 'Palau'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PK', 'PAK', '586', 'en', 'Pakistan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PA', 'PAN', '591', 'en', 'Panama'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PG', 'PNG', '598', 'en', 'Papua New Guinea'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PY', 'PRY', '600', 'en', 'Paraguay'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PE', 'PER', '604', 'en', 'Peru'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PH', 'PHL', '608', 'en', 'Philippines'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PN', 'PCN', '612', 'en', 'Pitcairn'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PL', 'POL', '616', 'en', 'Poland'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PT', 'PRT', '620', 'en', 'Portugal'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GW', 'GNB', '624', 'en', 'Guinea-Bissau'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TP', 'TMP', '626', 'en', 'East Timor'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PR', 'PRI', '630', 'en', 'Puerto Rico'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'QA', 'QAT', '634', 'en', 'Qatar'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'RE', 'REU', '638', 'en', 'Reunion'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'RO', 'ROM', '642', 'en', 'Romania'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'RU', 'RUS', '643', 'en', 'Russian Federation'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'RW', 'RWA', '646', 'en', 'Rwanda'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SH', 'SHN', '654', 'en', 'St. Helena'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'KN', 'KNA', '659', 'en', 'Saint Kitts And Nevis'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AI', 'AIA', '660', 'en', 'Anguilla'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'LC', 'LCA', '662', 'en', 'Saint Lucia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'PM', 'SPM', '666', 'en', 'St. Pierre And Miquelon'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'VC', 'VCT', '670', 'en', 'Saint Vincent And The Grenadines'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SM', 'SMR', '674', 'en', 'San Marino'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ST', 'STP', '678', 'en', 'Sao Tome And Principe'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SA', 'SAU', '682', 'en', 'Saudi Arabia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SN', 'SEN', '686', 'en', 'Senegal'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SC', 'SYC', '690', 'en', 'Seychelles'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SL', 'SLE', '694', 'en', 'Sierra Leone'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SG', 'SGP', '702', 'en', 'Singapore'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SK', 'SVK', '703', 'en', 'Slovakia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'VN', 'VNM', '704', 'en', 'Viet Nam'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SI', 'SVN', '705', 'en', 'Slovenia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SO', 'SOM', '706', 'en', 'Somalia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ZA', 'ZAF', '710', 'en', 'South Africa'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ZW', 'ZWE', '716', 'en', 'Zimbabwe'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ES', 'ESP', '724', 'en', 'Spain'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'EH', 'ESH', '732', 'en', 'Western Sahara'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SD', 'SDN', '736', 'en', 'Sudan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SR', 'SUR', '740', 'en', 'Suriname'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SJ', 'SJM', '744', 'en', 'Svalbard And Jan Mayen Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SZ', 'SWZ', '748', 'en', 'Kingdom of Eswatini'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SE', 'SWE', '752', 'en', 'Sweden'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CH', 'CHE', '756', 'en', 'Switzerland'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'SY', 'SYR', '760', 'en', 'Syrian Arab Republic'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TJ', 'TJK', '762', 'en', 'Tajikistan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TH', 'THA', '764', 'en', 'Thailand'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TG', 'TGO', '768', 'en', 'Togo'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TK', 'TKL', '772', 'en', 'Tokelau'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TO', 'TON', '776', 'en', 'Tonga'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TT', 'TTO', '780', 'en', 'Trinidad And Tobago'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'AE', 'ARE', '784', 'en', 'United Arab Emirates'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TN', 'TUN', '788', 'en', 'Tunisia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TR', 'TUR', '792', 'en', 'Turkey'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TM', 'TKM', '795', 'en', 'Turkmenistan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TC', 'TCA', '796', 'en', 'Turks And Caicos Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TV', 'TUV', '798', 'en', 'Tuvalu'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'UG', 'UGA', '800', 'en', 'Uganda'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'UA', 'UKR', '804', 'en', 'Ukraine'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'MK', 'MKD', '807', 'en', 'Macedonia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'EG', 'EGY', '818', 'en', 'Egypt'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'GB', 'GBR', '826', 'en', 'United Kingdom'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'TZ', 'TZA', '834', 'en', 'Tanzania'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'US', 'USA', '840', 'en', 'United States'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'VI', 'VIR', '850', 'en', 'Virgin Islands (U.S.)'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'BF', 'BFA', '854', 'en', 'Burkina Faso'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'UY', 'URY', '858', 'en', 'Uruguay'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'UZ', 'UZB', '860', 'en', 'Uzbekistan'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'VE', 'VEN', '862', 'en', 'Venezuela'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'WF', 'WLF', '876', 'en', 'Wallis And Futuna Islands'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'WS', 'WSM', '882', 'en', 'Samoa'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'CS', 'SCG', '891', 'en', 'Serbia and Montenegro'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'YE', 'YEM', '887', 'en', 'Yemen'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'ZM', 'ZMB', '894', 'en', 'Zambia'), " +
+                       "(newid(), false, '" + countryLookupId + "', 'IM', 'IMN', '833', 'en', 'Isle of Man')");
           }
         }
 

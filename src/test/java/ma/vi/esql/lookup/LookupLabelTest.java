@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 /**
@@ -65,7 +66,7 @@ class LookupLabelTest extends DataTest {
                    try (EsqlConnection con = db.esql()) {
                      Result rs = con.exec("lookuplabel('0115', 'TestClass')");
                      rs.toNext();
-                     Assertions.assertEquals("0115 - Growing of tobacco", rs.value(1));
+                     assertEquals("0115 - Growing of tobacco", rs.value(1));
                    }
                  }));
   }
@@ -118,7 +119,7 @@ class LookupLabelTest extends DataTest {
                    try (EsqlConnection con = db.esql()) {
                      Result rs = con.exec("lookuplabel('0115', 'TestClass', 'TestGroup')");
                      rs.toNext();
-                     Assertions.assertEquals("011 - Growing of non-perennial crops", rs.value(1));
+                     assertEquals("011 - Growing of non-perennial crops", rs.value(1));
                    }
                  }));
   }
@@ -132,7 +133,7 @@ class LookupLabelTest extends DataTest {
                    try (EsqlConnection con = db.esql()) {
                      Result rs = con.exec("lookuplabel('0115', 'TestClass', 'TestGroup', 'TestDivision', 'TestSection')");
                      rs.toNext();
-                     Assertions.assertEquals("A - Agriculture forestry and fishing", rs.value(1));
+                     assertEquals("A - Agriculture forestry and fishing", rs.value(1));
                    }
                  }));
   }
@@ -254,6 +255,106 @@ class LookupLabelTest extends DataTest {
                                     Map.of("i", "4532", "label", "4532 / 453 / 45 / G"),
                                     Map.of("i", "5811", "label", "5811 / 581 / 58 / J")));
 //                     printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupClassCodeTable() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, show_code=false, 'TestClass') ");
+                     printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupGroupCodeTableFromClass() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, last_to_first=false, show_last_only=false, show_code=false, 'TestClass', 'TestGroup')");
+                     printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupSectionCodeTableFromClass() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, show_code=false, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection')");
+                     printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupByAltCode1() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel('MUS', show_code=false, match_by='alt_code1', 'Country')");
+//                     printResult(rs, 20);
+                     rs.toNext();
+                     assertEquals("Mauritius", rs.value("label"));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupByAltCode2() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel('480', show_code=false, match_by='alt_code2', 'Country')");
+//                     printResult(rs, 20);
+                     rs.toNext();
+                     assertEquals("Mauritius", rs.value("label"));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupCountryTableByCode() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, 'Country')");
+                     printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupCountryTableByAltCode1() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, match_by='alt_code1', 'Country')");
+                     printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> lookupCountryTableByAltCode2() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, match_by='alt_code2', 'Country')");
+                     printResult(rs, 20);
                    }
                  }));
   }

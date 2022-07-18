@@ -16,6 +16,7 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
 import ma.vi.esql.syntax.macro.TypedMacro;
@@ -33,6 +34,7 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static ma.vi.esql.lookup.JoinLabel.getBooleanParam;
+import static ma.vi.esql.lookup.JoinLabel.getStringParam;
 import static ma.vi.esql.syntax.query.ColumnList.makeUnique;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 
@@ -129,7 +131,7 @@ public class LookupLabel extends Function implements TypedMacro {
           case "show_last_only"   -> showLastOnly    = getBooleanParam(namedArg, "show_last_only", path);
           case "last_to_first"    -> lastToFirst     = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator"  -> labelSeparator  = namedArg.arg();
-          case "match_by"         -> matchBy         = namedArg.arg().translate(ESQL);
+          case "match_by"         -> matchBy         = getStringParam(namedArg, "match_by", path);
           default                 -> throw new TranslationException("""
                                                                    Invalid named argument in lookuplabel: %1s
                                                                    lookuplabel recognises the following named arguments:
@@ -242,13 +244,23 @@ public class LookupLabel extends Function implements TypedMacro {
                              new Concatenation(ctx, asList(value, labelSeparator, label));
       fromValueAlias = toValueAlias;
     }
-    return new SelectExpression(ctx, new SelectBuilder(ctx)
-                                           .column(value, "label")
-                                           .from(from)
-                                           .where(new Equality(ctx,
-                                                               new ColumnRef(ctx, firstFromValueAlias, matchBy),
-                                                               code))
-                                           .build());
+    if (code instanceof NullLiteral) {
+      return new SelectBuilder(ctx)
+                  .column (new ColumnRef(ctx, firstFromValueAlias, matchBy), "code")
+                  .column (value, "label")
+                  .from   (from)
+                  .orderBy(firstFromValueAlias + '.' + matchBy)
+                  .build  ();
+    } else {
+      return new SelectExpression(ctx,
+                                  new SelectBuilder(ctx)
+                                       .column(value, "label")
+                                       .from  (from)
+                                       .where (new Equality(ctx,
+                                                            new ColumnRef(ctx, firstFromValueAlias, matchBy),
+                                                            code))
+                                       .build ());
+    }
   }
 
   private static Expression<?, String> label(Context ctx,

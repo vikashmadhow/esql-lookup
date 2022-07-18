@@ -20,6 +20,7 @@ import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.SelectExpression;
 import ma.vi.esql.syntax.expression.UncomputedExpression;
 import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.JoinTableExpr;
@@ -77,8 +78,8 @@ public class JoinLabel extends Function implements TypedMacro {
     if (path.hasAncestor(Define.class, UncomputedExpression.class)) {
       /*
        * Do not expand in Define statement (create/alter table/struct) or in
-       * uncomputed expression as the expansion to a select will not work in most
-       * cases when executed on the client-side.
+       * uncomputed expression as the expansion to a select will not work in
+       * most cases when executed on the client-side.
        */
       return esql;
     }
@@ -96,7 +97,7 @@ public class JoinLabel extends Function implements TypedMacro {
     }
 
     /*
-     * Load arguments
+     * Load arguments.
      */
     List<Link> links = new ArrayList<>();
     boolean showLastOnly = false;                                             // show only the last element (last linked foreign table) of the join.
@@ -115,7 +116,8 @@ public class JoinLabel extends Function implements TypedMacro {
         }
       } else {
         /*
-         * link arguments consist of 3 parts: the id expression, the name expression and the target table
+         * Link arguments consist of 3 parts: the id expression, the name
+         * expression and the target table.
          */
         if (!i.hasNext()) {
           throw new TranslationException("joinlabel needs a source id, a target id, a label and a target table for each "
@@ -198,10 +200,20 @@ public class JoinLabel extends Function implements TypedMacro {
                              new Concatenation(ctx, asList(value, labelSeparator, label));
       fromAlias = toAlias;
     }
-    return new SelectExpression(ctx, new SelectBuilder(ctx).column(value, "label")
-                                                           .from(from)
-                                                           .where(new Equality(ctx, firstTargetId, firstSourceId))
-                                                           .build());
+    if (firstSourceId instanceof NullLiteral) {
+      return new SelectBuilder(ctx)
+                  .column (firstTargetId, "code")
+                  .column (value, "label")
+                  .from   (from)
+                  .orderBy("2")
+                  .build  ();
+    } else {
+      return new SelectExpression(ctx,
+                                  new SelectBuilder(ctx).column(value, "label")
+                                                        .from  (from)
+                                                        .where (new Equality(ctx, firstTargetId, firstSourceId))
+                                                        .build ());
+    }
   }
 
   private record Link(Expression<?, ?> sourceId,
@@ -217,6 +229,16 @@ public class JoinLabel extends Function implements TypedMacro {
       throw new TranslationException(argName + " must be a boolean value (" + namedArg.arg() + " was provided)");
     }
     return value != null && (Boolean)value;
+  }
+
+  static String getStringParam(NamedArgument namedArg,
+                               String        argName,
+                               EsqlPath      path) {
+    Object value = namedArg.arg().exec(ESQL, null, path, namedArg.context.structure);
+    if (value != null && !(value instanceof String)) {
+      throw new TranslationException(argName + " must be a string value (" + namedArg.arg() + " was provided)");
+    }
+    return (String)value;
   }
 
   static Expression<?, String> toColumnRef(Parser   parser,

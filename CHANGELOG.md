@@ -8,7 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove alt_codes as these are best implemented as linked tables.
 - Virtual tables allowing lookups with links to be queried and updated as a single table.
 
-## [0.4.1]
+## [0.5.0]
+### Added
+- `lookuplabel` returns the list of codes and labels in the target lookup (after
+  following links) when the code supplied is explicitly null. The labels in the 
+  returned table applies all parameters supplied to the function. 
+- `joinlabel` returns the list of codes and labels in the target table (after
+  following links) when the source is supplied is explicitly null. The labels in
+  the returned table applies all parameters supplied to the function.
+- Alternate codes for matching is now a string parameter instead of column reference.
+  This is more intuitive and can be more robust in the case of a wrong matching
+  code being provided.
+
+## [0.4.1] - 2022-07-06
 ### Added
 - `lookuplabel` and `joinlabel` are no longer expanded in `Define` statements to 
   preserve the macro form in the resulting attributes of the defined table (or 
