@@ -56,7 +56,7 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * lookuplabel can have the following optional named arguments to control the
  * value displayed:
  * <ul>
- * <li><b>show_code:</b> whether to show the code in the label. Default is true.</li>
+ * <li><b>show_code:</b> whether to show the code in the label. Default is false.</li>
  * <li><b>show_label:</b> whether to show the label. Default is true.</li>
  * <li><b>show_description:</b> whether to show the description. Default is false.</li>
  * <li><b>code_separator:</b> an expression for the separator between the code
@@ -112,7 +112,7 @@ public class LookupLabel extends Function implements TypedMacro {
     Expression<?, ?> code            = null;                                   // The code to search a label for.
     Expression<?, ?> lookup          = null;                                   // The lookup to which the code belongs to.
     List<String>     links           = new ArrayList<>();                      // lookup links.
-    boolean          showCode        = true;                                   // show the code or not.
+    boolean          showCode        = false;                                  // show the code or not.
     boolean          showLabel       = true;                                   // show the label or not.
     boolean          showDescription = false;                                  // show the description or not.
     Expression<?, ?> codeSeparator   = new StringLiteral(ctx, "' - '");  // the separator to use between code and text in the label.
@@ -247,6 +247,8 @@ public class LookupLabel extends Function implements TypedMacro {
     if (code instanceof NullLiteral) {
       return new SelectBuilder(ctx)
                   .column (new ColumnRef(ctx, firstFromValueAlias, matchBy), "code")
+                  .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code1"), "alt_code1")
+                  .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code2"), "alt_code2")
                   .column (value, "label")
                   .from   (from)
                   .orderBy(firstFromValueAlias + '.' + matchBy)

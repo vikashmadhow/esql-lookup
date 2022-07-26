@@ -5,14 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Planned
-- Remove alt_codes as these are best implemented as linked tables.
-- Virtual tables allowing lookups with links to be queried and updated as a single table.
+- Virtual tables allowing lookups with links to be queried and updated as a 
+  single table.
 
-## [0.5.0]
+## [0.5.1] - 2022-07-26
 ### Added
-- `lookuplabel` returns the list of codes and labels in the target lookup (after
-  following links) when the code supplied is explicitly null. The labels in the 
-  returned table applies all parameters supplied to the function. 
+- `alt_code1` and `alt_code2` are not also returned by `lookuplabel` when the 
+  code supplied is explicitly null. 
+
+### Changed
+- `show_code` in `lookuplabel` now defaults to false, consistent with`joinlabel` 
+  and more aligned to user expectation. 
+
+## [0.5.0] - 2022-07-18
 - `joinlabel` returns the list of codes and labels in the target table (after
   following links) when the source is supplied is explicitly null. The labels in
   the returned table applies all parameters supplied to the function.
