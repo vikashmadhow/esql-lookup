@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.5.2]
+### Added
+- `matching` named argument to `lookuplabel` when `code` is null (loading whole
+  lookup) to restrict lookup values to load. 
+- `matching` named argument to `joinlabel` when `code` is null (loading all 
+  code-label pairs) to restrict values to load. 
+- Change to work with the changed ESQL `StringLiteral` which not require 
+  surrounding single-quotes when creating. 
+
 ## [0.5.1] - 2022-07-26
 ### Added
 - `alt_code1` and `alt_code2` are not also returned by `lookuplabel` when the 

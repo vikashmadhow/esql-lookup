@@ -61,15 +61,18 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * <li><b>show_description:</b> whether to show the description. Default is false.</li>
  * <li><b>code_separator:</b> an expression for the separator between the code
  *                            and text. Default is ' - '</li>
- * <li><b>show_last_only:</b> Show the last label element in the chain only
+ * <li><b>show_last_only:</b> show the last label element in the chain only
  *                            (a -&gt; b -&gt; c, show c only). Default is true.</li>
  * <li><b>label_separator:</b> an expression for the separator between the labels
  *                             from different lookups. Default is '/'.</li>
- * <li><b>last_to_first:</b> Shows the names from the link tables from the last
+ * <li><b>last_to_first:</b> shows the names from the link tables from the last
  *                           linked table to the first, if true, or otherwise,
  *                           from the first to the last. Default is true.</li>
  * <li><b>match_by:</b> the code column in the LookupValue to match the value to;
  *                      can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.</li>
+ * <li><b>matching:</b> a criteria to restrict the code-label pairs to load from
+ *                      the lookup. Applies only when the code searched is null,
+ *                      meaning that the whole lookup is to be loaded.</li>
  * </ul>
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -109,17 +112,18 @@ public class LookupLabel extends Function implements TypedMacro {
     /*
      * Load arguments included named arguments and links.
      */
-    Expression<?, ?> code            = null;                                   // The code to search a label for.
-    Expression<?, ?> lookup          = null;                                   // The lookup to which the code belongs to.
-    List<String>     links           = new ArrayList<>();                      // lookup links.
-    boolean          showCode        = false;                                  // show the code or not.
-    boolean          showLabel       = true;                                   // show the label or not.
-    boolean          showDescription = false;                                  // show the description or not.
-    Expression<?, ?> codeSeparator   = new StringLiteral(ctx, "' - '");  // the separator to use between code and text in the label.
-    boolean          showLastOnly    = true;                                   // show only the last element (last linked foreign table) of the join.
-    Expression<?, ?> labelSeparator  = new StringLiteral(ctx, "' / '");  // the separator to use between labels from different table (joins).
-    boolean          lastToFirst     = true;                                   // show labels last to first (or first to last if false).
-    String           matchBy         = "code";                                 // Match by code, alt_code1 or alt_code2. Default is code.
+    Expression<?, ?> code            = null;                             // The code to search a label for.
+    Expression<?, ?> lookup          = null;                             // The lookup to which the code belongs to.
+    List<String>     links           = new ArrayList<>();                // lookup links.
+    boolean          showCode        = false;                            // show the code or not.
+    boolean          showLabel       = true;                             // show the label or not.
+    boolean          showDescription = false;                            // show the description or not.
+    Expression<?, ?> codeSeparator   = new StringLiteral(ctx, " - ");    // the separator to use between code and text in the label.
+    boolean          showLastOnly    = true;                             // show only the last element (last linked foreign table) of the join.
+    Expression<?, ?> labelSeparator  = new StringLiteral(ctx, " / ");    // the separator to use between labels from different table (joins).
+    boolean          lastToFirst     = true;                             // show labels last to first (or first to last if false).
+    String           matchBy         = "code";                           // Match by code, alt_code1 or alt_code2. Default is code.
+    String           matching        = null;                             // Criteria to restrict code-label pairs to load for whole lookup.
 
     for (Expression<?, ?> arg: arguments) {
       if (arg instanceof NamedArgument namedArg) {
@@ -132,6 +136,7 @@ public class LookupLabel extends Function implements TypedMacro {
           case "last_to_first"    -> lastToFirst     = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator"  -> labelSeparator  = namedArg.arg();
           case "match_by"         -> matchBy         = getStringParam(namedArg, "match_by", path);
+          case "matching"         -> matching        = getStringParam(namedArg, "matching", path);
           default                 -> throw new TranslationException("""
                                                                    Invalid named argument in lookuplabel: %1s
                                                                    lookuplabel recognises the following named arguments:
@@ -139,10 +144,11 @@ public class LookupLabel extends Function implements TypedMacro {
                                                                    show_label: whether to show the label or not. Default is true.
                                                                    show_description: whether to show the description or not. Default is false.
                                                                    code_separator: the separator between the code and text. Default is ' - '
-                                                                   show_last_only: Show the last label element in the chain only (a -> b -> c, show c only). Default is true.
+                                                                   show_last_only: chow the last label element in the chain only (a -> b -> c, show c only). Default is true.
                                                                    label_separator: the separator between the labels from different lookups. Default is '/'.
-                                                                   last_to_first: Shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.
+                                                                   last_to_first: shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.
                                                                    match_by: the code column in LookupValue to match the value to; can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.
+                                                                   matching: criteria to restrict code-label pairs to load for whole lookup.
                                                                    """.formatted(namedArg.name()));
         }
       } else if (code == null) {
@@ -245,14 +251,18 @@ public class LookupLabel extends Function implements TypedMacro {
       fromValueAlias = toValueAlias;
     }
     if (code instanceof NullLiteral) {
-      return new SelectBuilder(ctx)
-                  .column (new ColumnRef(ctx, firstFromValueAlias, matchBy), "code")
-                  .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code1"), "alt_code1")
-                  .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code2"), "alt_code2")
-                  .column (value, "label")
-                  .from   (from)
-                  .orderBy(firstFromValueAlias + '.' + matchBy)
-                  .build  ();
+      SelectBuilder builder =  new SelectBuilder(ctx);
+      if (matching != null) {
+        Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching), firstFromValueAlias);
+        builder.where(where);
+      }
+      return builder.column (new ColumnRef(ctx, firstFromValueAlias, matchBy), "code")
+                    .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code1"), "alt_code1")
+                    .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code2"), "alt_code2")
+                    .column (value, "label")
+                    .from   (from)
+                    .orderBy(firstFromValueAlias + '.' + matchBy)
+                    .build  ();
     } else {
       return new SelectExpression(ctx,
                                   new SelectBuilder(ctx)

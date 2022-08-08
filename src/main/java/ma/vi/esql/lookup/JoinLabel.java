@@ -15,10 +15,7 @@ import ma.vi.esql.syntax.Esql;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Define;
-import ma.vi.esql.syntax.expression.Concatenation;
-import ma.vi.esql.syntax.expression.Expression;
-import ma.vi.esql.syntax.expression.SelectExpression;
-import ma.vi.esql.syntax.expression.UncomputedExpression;
+import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
@@ -64,6 +61,9 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * <li><b>last_to_first:</b> Shows the names from the link tables from the
  *                           last linked table to the first, if true, or otherwise,
  *                           from the first to the last. Default is true.</li>
+ * <li><b>matching:</b> A criteria to restrict the code-label pairs to load from
+ *                      the lookup. Applies only when the code searched is null,
+ *                      meaning that the whole lookup is to be loaded.</li>
  * </ul>
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -99,10 +99,11 @@ public class JoinLabel extends Function implements TypedMacro {
     /*
      * Load arguments.
      */
-    List<Link> links = new ArrayList<>();
-    boolean showLastOnly = false;                                             // show only the last element (last linked foreign table) of the join.
-    Expression<?, ?> labelSeparator = new StringLiteral(ctx, "' / '");  // the separator to use between labels from different table (joins).
-    boolean lastToFirst = true;                                               // show labels last to first (or first to last if false).
+    List<Link>       links          = new ArrayList<>();
+    boolean          showLastOnly   = false;                            // show only the last element (last linked foreign table) of the join.
+    Expression<?, ?> labelSeparator = new StringLiteral(ctx, " / ");    // the separator to use between labels from different table (joins).
+    boolean          lastToFirst    = true;                             // show labels last to first (or first to last if false).
+    String           matching       = null;                             // Criteria to restrict code-label pairs to load for whole lookup.
 
     Iterator<Expression<?, ?>> i = arguments.iterator();
     while (i.hasNext()) {
@@ -112,6 +113,7 @@ public class JoinLabel extends Function implements TypedMacro {
           case "show_last_only"  -> showLastOnly   = getBooleanParam(namedArg, "show_last_only", path);
           case "last_to_first"   -> lastToFirst    = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator" -> labelSeparator = namedArg.arg();
+          case "matching"        -> matching       = getStringParam(namedArg, "matching", path);
           default                -> throw new TranslationException("Invalid named argument in joinlabel: " + namedArg.name());
         }
       } else {
@@ -176,7 +178,7 @@ public class JoinLabel extends Function implements TypedMacro {
                                                 aliases, aliasIndex, false);
     String fromAlias = uniqueName.a;
     aliasIndex = uniqueName.b;
-
+    String firstFromAlias = fromAlias;
     Expression<?, String> firstTargetId = toColumnRef(parser, link.targetId, fromAlias, path);
     Expression<?, String> value = toColumnRef(parser, link.labelColumn, fromAlias, path);
     TableExpr from = new SingleTableExpr(ctx, link.targetTable, fromAlias);
@@ -201,12 +203,16 @@ public class JoinLabel extends Function implements TypedMacro {
       fromAlias = toAlias;
     }
     if (firstSourceId instanceof NullLiteral) {
-      return new SelectBuilder(ctx)
-                  .column (firstTargetId, "code")
-                  .column (value, "label")
-                  .from   (from)
-                  .orderBy("2")
-                  .build  ();
+      SelectBuilder builder = new SelectBuilder(ctx);
+      if (matching != null) {
+        Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching), firstFromAlias);
+        builder.where(where);
+      }
+      return builder.column (firstTargetId, "code")
+                    .column (value, "label")
+                    .from   (from)
+                    .orderBy("2")
+                    .build  ();
     } else {
       return new SelectExpression(ctx,
                                   new SelectBuilder(ctx).column(value, "label")
