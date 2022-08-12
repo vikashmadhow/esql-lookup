@@ -8,7 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
-## [0.5.2]
+## [0.5.3] - 2022-08-12
+### Added
+- `display_name` added to `Lookup`.
+- `group` column added to `Lookup` table used to assign a lookup to a specific 
+  for organisation purposes. 
+
+## [0.5.2] - 2022-08-08
 ### Added
 - `matching` named argument to `lookuplabel` when `code` is null (loading whole
   lookup) to restrict lookup values to load. 

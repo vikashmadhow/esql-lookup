@@ -178,7 +178,7 @@ public class LookupLabel extends Function implements TypedMacro {
      *
      *      select v1.code || ' - ' || v1.label
      *        from LookupValue v1
-     *        join LookupLink lk1 on v1.id=lk1.target_value_id
+     *        join LookupValueLink lk1 on v1.id=lk1.target_value_id
      *        join LookupValue v0 on (lk1.source_value_id=v0.id and lk1.name=Y)
      *        join Lookup l on v0.lookup_id=l.id and l.name=X
      *       where v0.code='123'

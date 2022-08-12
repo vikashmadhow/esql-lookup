@@ -3,7 +3,6 @@ package ma.vi.esql.lookup;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -94,16 +93,16 @@ class LookupLabelTest extends DataTest {
                      con.exec("delete t from t:a.b.LkT");
                      con.exec("delete s from s:LkS");
                      con.exec("insert into LkS(_id, a, b, i) values "
-                                  + "(newid(), 1, 0, '0115'),"
-                                  + "(newid(), 2, 9, '0164'),"
-                                  + "(newid(), 3, 8, '0992'),"
-                                  + "(newid(), 4, 7, '1063'),"
-                                  + "(newid(), 5, 6, '1511'),"
-                                  + "(newid(), 6, 5, '2219'),"
-                                  + "(newid(), 7, 4, '2434'),"
-                                  + "(newid(), 8, 3, '3211'),"
-                                  + "(newid(), 9, 2, '4532'),"
-                                  + "(newid(), 0, 1, '5811')");
+                            + "(newid(), 1, 0, '0115'),"
+                            + "(newid(), 2, 9, '0164'),"
+                            + "(newid(), 3, 8, '0992'),"
+                            + "(newid(), 4, 7, '1063'),"
+                            + "(newid(), 5, 6, '1511'),"
+                            + "(newid(), 6, 5, '2219'),"
+                            + "(newid(), 7, 4, '2434'),"
+                            + "(newid(), 8, 3, '3211'),"
+                            + "(newid(), 9, 2, '4532'),"
+                            + "(newid(), 0, 1, '5811')");
 
                      Result rs = con.exec("select i, label:lookuplabel(i, 'TestClass', 'TestGroup') from LkS order by i");
                      matchResult(rs,

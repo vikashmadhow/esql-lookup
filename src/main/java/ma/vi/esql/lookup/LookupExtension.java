@@ -5,7 +5,6 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
-import ma.vi.esql.syntax.Parser;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,131 +19,130 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class LookupExtension implements Extension {
   @Override
   public void init(Database db, Configuration config) {
-    String schema = config.get("schema", "_lookup");
+    this.db = db;
+    this.schema = config.get("schema", "_lookup");
     log.log(INFO, "Creating lookup tables in " + db + " in schema " + schema);
     try (EsqlConnection c = db.esql()) {
-      Parser p = new Parser(db.structure());
-
       ///////////////////////////////////////////////////////////////////////////
       // Create lookup tables
       ///////////////////////////////////////////////////////////////////////////
-      c.exec(p.parse(
-          "create table " + schema + ".Lookup drop undefined({" +
-          "  name: 'Lookup', " +
-          "  description: 'A named table of values', " +
-          "  dependents: {" +
-          "    links: {" +
-          "      type: '" + schema + ".LookupLink'," +
-          "      referred_by: 'source_lookup_id'," +
-          "      label: 'Lookup Links'" +
-          "    }" +
-          "  }" +
-          "} " +
+      c.exec("""
+             create table %1$s.Lookup drop undefined({
+               name: 'Lookup',
+               description: 'A named table of values',
+               dependents: {
+                 links: {
+                   type:        '%1$s.LookupLink',
+                   referred_by: 'source_lookup_id',
+                   label:       'Lookup Links'
+                 }
+               }
+             }
 
-          "_id uuid not null," +
-          "_version long not null default 0," +
-          "_can_delete bool not null default true," +
-          "_can_edit bool not null default true," +
+             _id         uuid not null,
+             _version    long not null default 0,
+             _can_delete bool not null default true,
+             _can_edit   bool not null default true,
 
-          "name string not null {" +
-          "  validate_unique: true, " +
-          "  mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'" +
-          "}, " +
-          "description string, " +
+             name string not null {
+               validate_unique: true,
+               mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'
+             },
+             display_name string,
+             description  string,
+             "group"      string,
 
-          "primary key(_id), " +
-          "unique(name))"));
+             primary key(_id),
+             unique(name))""".formatted(schema));
 
-      c.exec(p.parse(
-          "create table " + schema + ".LookupLink drop undefined({" +
-          "  name: 'Lookup Link', " +
-          "  description: 'The definition of links between values of lookup tables which are used for searching data by associations and for aggregating data in reports'" +
-          "} " +
+      c.exec("""
+          create table %1$s.LookupLink drop undefined({
+            name: 'Lookup Link',
+            description: 'The definition of links between values of lookup tables which are used for searching data by associations and for aggregating data in reports'
+          }
 
-          "_id uuid not null, " +
-          "_version long not null default 0, " +
-          "_can_delete bool not null default true, " +
-          "_can_edit bool not null default true, " +
+          _id         uuid not null,
+          _version    long not null default 0,
+          _can_delete bool not null default true,
+          _can_edit   bool not null default true,
 
-          "name string not null {" +
-          "  validate_unique: true, " +
-          "  mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii', " +
-          "  description: 'Start with a letter, follow by letters or digits' " +
-          "}, " +
+          name string not null {
+            validate_unique: true,
+            mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii',
+            description: 'Start with a letter, follow by letters or digits'
+          },
 
-          "display_name string not null, " +
+          display_name string not null,
 
-          "source_lookup_id uuid not null {" +
-          "  show: false" +
-          "}, " +
+          source_lookup_id uuid not null { show: false },
 
-          "target_lookup_id uuid not null {" +
-          "  label: 'Target', " +
-          "  value_table: '" + schema + ".Lookup', " +
-          "  value_id: '_id', " +
-          "  value_label: 'name', " +
-          "  show_value_as: joinlabel(target_lookup_id, '_id', 'name', '" + schema + ".Lookup')" +
-          "}, " +
+          target_lookup_id uuid not null {
+            label:         'Target',
+            value_table:   '%1$s.Lookup',
+            value_id:      '_id',
+            value_label:   'name',
+            show_value_as: joinlabel(target_lookup_id, '_id', 'name', '%1$s.Lookup')
+          },
 
-          "primary key(_id), " +
-          "unique(name), " +
-          "foreign key(source_lookup_id) references " + schema + ".Lookup(_id), " +
-          "foreign key(target_lookup_id) references " + schema + ".Lookup(_id))"));
+          primary key(_id),
+          unique(name),
+          foreign key(source_lookup_id) references %1$s.Lookup(_id),
+          foreign key(target_lookup_id) references %1$s.Lookup(_id))""".formatted(schema));
 
-      c.exec(p.parse(
-          "create table " + schema + ".LookupValue drop undefined({" +
-          "  name: 'Lookup Value', " +
-          "  description: 'The values in a lookup table'," +
-          "  validate_unique: [['lookup_id', 'code', 'lang']], " +
-          "  dependents: {" +
-          "    links: {" +
-          "      type: '" + schema + ".LookupValueLink'," +
-          "      referred_by: 'source_value_id'," +
-          "      label: 'Lookup Value Links'" +
-          "    }" +
-          "  }" +
-          "} " +
+      c.exec("""
+             create table %1$s.LookupValue drop undefined({
+               name: 'Lookup Value',
+               description: 'The values in a lookup table',
+               validate_unique: [['lookup_id', 'code', 'lang']],
+               dependents: {
+                 links: {
+                   type: '%1$s.LookupValueLink',
+                   referred_by: 'source_value_id',
+                   label: 'Lookup Value Links'
+                 }
+               }
+             }
 
-          "_id uuid not null, " +
-          "_version long not null default 0, " +
-          "_can_delete bool not null default true, " +
-          "_can_edit bool not null default true, " +
+             _id         uuid not null,
+             _version    long not null default 0,
+             _can_delete bool not null default true,
+             _can_edit   bool not null default true,
 
-          "lookup_id uuid not null {" +
-          "  show:false " +
-          "}, " +
-          "code string not null, " +
-          "alt_code1 string, " +
-          "alt_code2 string, " +
-          "label string not null, " +
-          "description text, " +
-          "lang string not null default 'en' {" +
-          "  label: 'Language', " +
-          "  initial_value: 'en' " +
-          "}, " +
+             lookup_id uuid not null { show: false },
+             
+             code        string not null,
+             alt_code1   string,
+             alt_code2   string,
+             label       string not null,
+             description text,
+             
+             lang string not null default 'en' {
+               label: 'Language',
+               initial_value: 'en'
+             },
 
-          "primary key(_id), " +
-          "unique(lookup_id, code, lang), " +
-          "foreign key(lookup_id) references " + schema + ".Lookup(_id) on delete cascade on update cascade)"));
+             primary key(_id),
+             unique(lookup_id, code, lang),
+             foreign key(lookup_id) references %1$s.Lookup(_id) on delete cascade on update cascade)""".formatted(schema));
 
-      c.exec(p.parse(
-          "create table " + schema + ".LookupValueLink drop undefined({" +
-          "  name: 'Lookup Value Link', " +
-          "  description: 'Links between values of lookup tables, used primarily for searching data by associations and for aggregating data in reports'" +
-          "} " +
+      c.exec("""
+             create table %1$s.LookupValueLink drop undefined({
+               name: 'Lookup Value Link',
+               description: 'Links between values of lookup tables, used primarily for searching data by associations and for aggregating data in reports'
+             }
 
-          "_id uuid not null, " +
-          "_version long not null default 0, " +
-          "_can_delete bool not null default true, " +
-          "_can_edit bool not null default true, " +
+             _id         uuid not null,
+             _version    long not null default 0,
+             _can_delete bool not null default true,
+             _can_edit   bool not null default true,
 
-          "name string not null, " +
-          "source_value_id uuid not null, " +
-          "target_value_id uuid not null, " +
+             name            string not null,
+             source_value_id uuid   not null,
+             target_value_id uuid   not null,
 
-          "primary key(_id), " +
-          "foreign key(source_value_id) references " + schema + ".LookupValue(_id), " +
-          "foreign key(target_value_id) references " + schema + ".LookupValue(_id))"));
+             primary key(_id),
+             foreign key(source_value_id) references %1$s.LookupValue(_id),
+             foreign key(target_value_id) references %1$s.LookupValue(_id))""".formatted(schema));
     }
 
     /*
@@ -444,6 +442,66 @@ public class LookupExtension implements Extension {
       }
     }
   }
+
+//  public Optional<Lookup> findLookup(String name) {
+//
+//  }
+//
+//  public UUID saveLookup(Lookup lookup) {
+//    try (EsqlConnection con = db.esql()) {
+//      Result rs = con.exec("""
+//                           select _id
+//                             from %1$s.Lookup
+//                            where name=@name""".formatted(schema),
+//                           new QueryParams().add("name", lookup.name()));
+//      UUID lookupId;
+//      if (rs.toNext()) {
+//        lookupId = rs.value("_id");
+//        con.exec("""
+//                 update u
+//                   from u:%1$s.User
+//                    set realname=@realname,
+//                        email=@email,
+//                        phone=@phone,
+//                        two_factor=@twoFactor,
+//                        send_otp_to=@sendOtpTo,
+//                        user_permission_id=@permId
+//                  where _id=@id
+//                 """.formatted(schema),
+//                 new QueryParams()
+//                     .add("realname",  lookup.realname())
+//                     .add("email",     lookup.email())
+//                     .add("phone",     lookup.phone())
+//                     .add("twoFactor", lookup.twoFactor())
+//                     .add("sendOtpTo", lookup.sendOtpTo())
+//                     .add("permId",    permId)
+//                     .add("id",        lookupId));
+//      } else {
+//        lookupId = UUID.randomUUID();
+//        con.exec("""
+//                 insert into %1$s.User(_id, username, password, realname, email,
+//                                       phone, two_factor, send_otp_to, user_permission_id)
+//                    values(@id, @username, @password, @realname, @email, @phone,
+//                           @twoFactor, @sendOtpTo, @permId)
+//                 """.formatted(schema),
+//                 new QueryParams()
+//                     .add("id",        lookupId)
+//                     .add("username",  lookup.username())
+//                     .add("password",  lookup.password())
+//                     .add("realname",  lookup.realname())
+//                     .add("email",     lookup.email())
+//                     .add("phone",     lookup.phone())
+//                     .add("twoFactor", lookup.twoFactor())
+//                     .add("sendOtpTo", lookup.sendOtpTo())
+//                     .add("permId",    permId));
+//      }
+//      return lookupId;
+//    }
+//  }
+
+  private String schema;
+
+  private Database db;
 
   private static final System.Logger log = System.getLogger(LookupExtension.class.getName());
 }
