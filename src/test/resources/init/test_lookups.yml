@@ -1,0 +1,60 @@
+$overwrite$: true
+
+TestAreaType:
+  displayName: Area type
+  description: Type of geographical area
+  group: Geography
+  values:
+    - I,Island
+    - C,City
+    - T,Town
+    - V,Village
+
+TestIsland:
+  displayName: Island
+  description: Island
+  group: Geography
+  values:
+    - I01,Mauritius
+    - I02,Rodrigues
+    - I03,Agalega
+    - I04,St. Brandon
+    - I05,Chagos
+    - I06,Tromelin
+    - I07,T'ii\,ka
+
+TestCurrency:
+  displayName: Currency
+  description: Currencies
+  group: Money
+  values:
+    - ALL,8,Lek
+    - DZD,12,Algerian Dinar
+    - ARS,32,Argentine Peso
+    - AUD,36,Australian Dollar
+
+TestRegionalGrouping:
+  displayName: Regional groupings
+  description: Regional groupings of countries
+  group: Geography
+  values:
+    - SADC,Southern African Development Community
+    - COMESA,Common Market for Eastern and Southern Africa
+
+TestCountry:
+  displayName: Country
+  description: Countries
+  group: Geography
+  links:
+    TestCurrency:
+      displayName: Currency
+      target: TestCurrency
+    TestRegionalGrouping:
+      displayName: Regional grouping
+      target: TestRegionalGrouping
+  values:
+    - AF,AFG,4,Afghanistan|ALL|SADC
+    - AL,ALB,8,Albania|ARS|SADC
+    - DZ,DZA,12,Algeria|DZD|SADC
+    - AU,AUS,36,Australia|AUD|COMESA
+

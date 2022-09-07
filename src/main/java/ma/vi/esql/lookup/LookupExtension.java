@@ -1,13 +1,18 @@
 package ma.vi.esql.lookup;
 
 import ma.vi.base.config.Configuration;
+import ma.vi.base.lang.NotFoundException;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.exec.QueryParams;
+import ma.vi.esql.exec.Result;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.System.Logger.Level.INFO;
 import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
@@ -443,63 +448,393 @@ public class LookupExtension implements Extension {
     }
   }
 
-//  public Optional<Lookup> findLookup(String name) {
-//
-//  }
-//
-//  public UUID saveLookup(Lookup lookup) {
-//    try (EsqlConnection con = db.esql()) {
-//      Result rs = con.exec("""
-//                           select _id
-//                             from %1$s.Lookup
-//                            where name=@name""".formatted(schema),
-//                           new QueryParams().add("name", lookup.name()));
-//      UUID lookupId;
-//      if (rs.toNext()) {
-//        lookupId = rs.value("_id");
-//        con.exec("""
-//                 update u
-//                   from u:%1$s.User
-//                    set realname=@realname,
-//                        email=@email,
-//                        phone=@phone,
-//                        two_factor=@twoFactor,
-//                        send_otp_to=@sendOtpTo,
-//                        user_permission_id=@permId
-//                  where _id=@id
-//                 """.formatted(schema),
-//                 new QueryParams()
-//                     .add("realname",  lookup.realname())
-//                     .add("email",     lookup.email())
-//                     .add("phone",     lookup.phone())
-//                     .add("twoFactor", lookup.twoFactor())
-//                     .add("sendOtpTo", lookup.sendOtpTo())
-//                     .add("permId",    permId)
-//                     .add("id",        lookupId));
-//      } else {
-//        lookupId = UUID.randomUUID();
-//        con.exec("""
-//                 insert into %1$s.User(_id, username, password, realname, email,
-//                                       phone, two_factor, send_otp_to, user_permission_id)
-//                    values(@id, @username, @password, @realname, @email, @phone,
-//                           @twoFactor, @sendOtpTo, @permId)
-//                 """.formatted(schema),
-//                 new QueryParams()
-//                     .add("id",        lookupId)
-//                     .add("username",  lookup.username())
-//                     .add("password",  lookup.password())
-//                     .add("realname",  lookup.realname())
-//                     .add("email",     lookup.email())
-//                     .add("phone",     lookup.phone())
-//                     .add("twoFactor", lookup.twoFactor())
-//                     .add("sendOtpTo", lookup.sendOtpTo())
-//                     .add("permId",    permId));
-//      }
-//      return lookupId;
-//    }
-//  }
+  public Lookup loadLookup(String name) {
+    return findLookup(name)
+          .orElseThrow(() -> new NotFoundException("Lookup named '" + name + "' not found."));
+  }
+
+  public Optional<Lookup> findLookup(String name) {
+    return Optional.ofNullable(lookups().get(name));
+  }
+
+  public LookupValue loadLookupValue(String lookup,
+                                     String code) {
+    return loadLookupValue(lookup, code, Lookup.MatchBy.code);
+  }
+
+  public LookupValue loadLookupValue(String lookup,
+                                     String code,
+                                     Lookup.MatchBy matchBy) {
+    return findLookupValue(lookup, code, matchBy)
+          .orElseThrow(() -> new NotFoundException(matchBy + "='" + code
+                                                 + "' not found in lookup "
+                                                 + lookup));
+  }
+
+  public Optional<LookupValue> findLookupValue(String lookup,
+                                               String code) {
+    return findLookupValue(lookup, code, Lookup.MatchBy.code);
+  }
+
+  public Optional<LookupValue> findLookupValue(String lookup,
+                                               String code,
+                                               Lookup.MatchBy matchBy) {
+    return Optional.ofNullable(lookups().get(lookup))
+                   .map(l -> l.mapBy(matchBy).get(code));
+  }
+
+  private Map<String, Lookup> lookups() {
+    if (this.lookupsCache == null) {
+      this.lookupsCache = new ConcurrentHashMap<>();
+      try (EsqlConnection con = db.esql();
+           Result rs = con.exec("""
+                                select           source_id:source._id,
+                                               source_name:source.name,
+                                              source_group:source."group",
+                                       source_display_name:source.display_name,
+                                        source_description:source.description,
+                                       
+                                                 link_name:link.name,
+                                         link_display_name:link.display_name,
+                                       
+                                               target_name:target.name
+                                       
+                                  from source:_lookup.Lookup
+                             left join   link:_lookup.LookupLink on link.source_lookup_id=source._id
+                             left join target:_lookup.Lookup     on target._id=link.target_lookup_id""")) {
+        record Link(String source,
+                    String name,
+                    String displayName,
+                    String target) {}
+        Map<String, Lookup> lookups = new HashMap<>();
+        List<Link> links = new ArrayList<>();
+        while (rs.toNext()) {
+          String lookupName = rs.value("source_name");
+          if (!lookups.containsKey(lookupName)) {
+            lookups.put(lookupName, new Lookup(rs.value("source_id"),
+                                               lookupName,
+                                               rs.value("source_group"),
+                                               rs.value("source_display_name"),
+                                               rs.value("source_description"),
+                                               new ArrayList<>(),
+                                               new HashMap<>(),
+                                               new HashMap<>()));
+          }
+          String linkName = rs.value("link_name");
+          if (linkName != null) {
+            links.add(new Link(lookupName,
+                               linkName,
+                               rs.value("link_display_name"),
+                               rs.value("target_name")));
+          }
+        }
+        for (Link link: links) {
+          Lookup source = lookups.get(link.source);
+          Lookup target = lookups.get(link.target);
+          source.links().add(new LookupLink(link.name, link.displayName, target));
+        }
+
+        /*
+         * Load values.
+         */
+        try (Result vrs = con.exec("""
+                                   select          source_id:sv._id,
+                                                 source_code:sv.code,
+                                            source_alt_code1:sv.alt_code1,
+                                            source_alt_code2:sv.alt_code2,
+                                                source_label:sv.label,
+                                          source_description:sv.description,
+                                                 source_lang:sv.lang,
+                                         
+                                          source_lookup_name:sl.name,
+                                                   link_name:lk.name,
+                                          
+                                          target_lookup_name:tl.name,
+                                                   target_id:lk.target_value_id
+                                          
+                                     from sv:_lookup.LookupValue
+                                     join sl:_lookup.Lookup          on sl._id=sv.lookup_id
+                                left join lk:_lookup.LookupValueLink on lk.source_value_id=sv._id
+                                left join tv:_lookup.LookupValue     on tv._id=lk.target_value_id
+                                left join tl:_lookup.Lookup          on tl._id=tv.lookup_id""")) {
+          record ValueLink(UUID   source,
+                           String sourceLookup,
+                           String linkName,
+                           String targetLookup,
+                           UUID   target) {}
+
+          List<ValueLink> valueLinks = new ArrayList<>();
+          while (vrs.toNext()) {
+            UUID valueId = vrs.value("source_id");
+            String sourceLookupName = vrs.value("source_lookup_name");
+            Map<String, LookupValue> lookupValues = lookups.get(sourceLookupName).values();
+            Map<UUID,   LookupValue> lookupValuesById = lookups.get(sourceLookupName).valuesById();
+            String sourceCode = vrs.value("source_code");
+            if (!lookupValues.containsKey(sourceCode)) {
+              LookupValue value = new LookupValue(valueId,
+                                                  sourceLookupName,
+                                                  sourceCode,
+                                                  vrs.value("source_alt_code1"),
+                                                  vrs.value("source_alt_code2"),
+                                                  vrs.value("source_label"),
+                                                  vrs.value("source_description"),
+                                                  vrs.value("source_lang"),
+                                                  new ArrayList<>());
+              lookupValues.put(sourceCode,  value);
+              lookupValuesById.put(valueId, value);
+            }
+            String linkName = vrs.value("link_name");
+            if (linkName != null) {
+              valueLinks.add(new ValueLink(valueId,
+                                           sourceLookupName,
+                                           linkName,
+                                           vrs.value("target_lookup_name"),
+                                           vrs.value("target_id")));
+            }
+          }
+          for (ValueLink link: valueLinks) {
+            LookupValue source = lookups.get(link.sourceLookup).valuesById().get(link.source);
+            LookupValue target = lookups.get(link.targetLookup).valuesById().get(link.target);
+            source.links().add(new LookupValueLink(link.linkName, target));
+          }
+        }
+        this.lookupsCache = lookups;
+      }
+    }
+    return this.lookupsCache;
+  }
+
+  public UUID saveLookup(Lookup lookup) {
+    lookupsCache = null;
+    return saveLookup(lookup, new HashSet<>());
+  }
+
+  private UUID saveLookup(Lookup lookup, Set<UUID> savedLookups) {
+    if (!savedLookups.contains(lookup.id())) {
+      savedLookups.add(lookup.id());
+      try (EsqlConnection con = db.esql()) {
+        Result rs = con.exec("""
+                             select _id
+                               from _lookup.Lookup
+                              where name=@name""",
+                             new QueryParams().add("name", lookup.name()));
+        UUID lookupId;
+        if (rs.toNext()) {
+          lookupId = rs.value("_id");
+          con.exec("""
+                   update l
+                     from l:_lookup.Lookup
+                      set display_name=@displayName,
+                          description=@description,
+                          "group"=@grp
+                    where _id=@id""",
+                   new QueryParams()
+                       .add("displayName", lookup.displayName())
+                       .add("description", lookup.description())
+                       .add("grp",         lookup.group())
+                       .add("id",          lookupId));
+
+          /*
+           * Update links: set a special version on existing links, change that
+           * version for updated links, then deleted those which were not updated
+           * (meaning that they were not present in the definition).
+           */
+          con.exec("""
+                   update ln
+                     from ln:_lookup.LookupLink
+                      set _version=0
+                    where source_lookup_id=u'""" + lookupId + "'");
+
+          if (lookup.links() != null) {
+            for (LookupLink link: lookup.links()) {
+              saveLookupLink(lookup, link);
+            }
+          }
+          con.exec("""
+                   delete ln
+                     from ln:_lookup.LookupLink
+                    where _version=0
+                      and source_lookup_id=u'""" + lookupId + "'");
+
+          /*
+           * Update values using same strategy as links
+           */
+          con.exec("""
+                   update lv
+                     from lv:_lookup.LookupValue
+                      set _version=0
+                    where lookup_id=u'""" + lookupId + "'");
+
+          if (lookup.values() != null) {
+            for (LookupValue value: lookup.values().values()) {
+              saveLookupValue(lookup, value);
+            }
+          }
+          con.exec("""
+                   delete lv
+                     from lv:_lookup.LookupValue
+                    where _version=0
+                      and lookup_id=u'""" + lookupId + "'");
+
+        } else {
+          lookupId = lookup.id();
+          con.exec("""
+                   insert into _lookup.Lookup(_id,  name, display_name,  description, "group")
+                                       values(@id, @name, @displayName, @description, @grp)""",
+                   new QueryParams()
+                       .add("id",          lookupId)
+                       .add("name",        lookup.name())
+                       .add("displayName", lookup.displayName())
+                       .add("description", lookup.description())
+                       .add("grp",         lookup.group()));
+          if (lookup.links() != null) {
+            for (LookupLink link: lookup.links()) {
+              con.exec("""
+                       insert into _lookup.LookupLink(_id,      name, display_name, source_lookup_id, target_lookup_id)
+                                               values(newid(), @name, @displayName, @sourceId,        @targetId)""",
+                       new QueryParams()
+                           .add("name",        link.name())
+                           .add("displayName", link.displayName())
+                           .add("sourceId",    lookupId)
+                           .add("targetId",    link.target().id()));
+            }
+          }
+          if (lookup.values() != null) {
+            for (LookupValue value: lookup.values().values()) {
+              saveLookupValue(lookup, value);
+//              con.exec("""
+//                       insert into _lookup.LookupValue(_id,     lookup_id,  code, alt_code1, alt_code2,  label,  description,  lang)
+//                                                values(newid(), @lookupId, @code, @altCode1, @altCode2, @label, @description, @lang)""",
+//                       new QueryParams()
+//                           .add("lookupId",    lookupId)
+//                           .add("code",        value.code())
+//                           .add("altCode1",    value.altCode1())
+//                           .add("altCode2",    value.altCode2())
+//                           .add("label",       value.label())
+//                           .add("description", value.description())
+//                           .add("lang",        value.lang() == null ? "en" : value.lang()));
+            }
+          }
+        }
+        return lookupId;
+      }
+    }
+    return lookup.id();
+  }
+
+  public void saveLookupLink(Lookup lookup, LookupLink link) {
+    try (EsqlConnection con = db.esql();
+         Result rs = con.exec("""
+                              select ln._id
+                                from ln:_lookup.LookupLink
+                                join lk:_lookup.Lookup on lk._id=ln.source_lookup_id
+                                                      and lk._id=@lookupId
+                               where ln.name=@linkName
+                              """,
+                              new QueryParams()
+                                 .add("lookupId", lookup.id())
+                                 .add("linkName", link.name()))) {
+      if (rs.toNext()) {
+        UUID linkId = rs.value(1);
+        con.exec("""
+                 update ln
+                   from ln:_lookup.LookupLink
+                    set _version=2,
+                        display_name=@displayName,
+                        target_lookup_id=@targetId
+                  where ln._id=@linkId""",
+                 new QueryParams()
+                     .add("displayName", link.displayName())
+                     .add("linkId",      linkId)
+                     .add("targetId",    loadLookup(link.target().name()).id()));
+      } else {
+        con.exec("""
+                 insert into _lookup.LookupLink(_id,     _version,  name, display_name, source_lookup_id, target_lookup_id)
+                                         values(newid(), 1,        @name, @displayName, @sourceId,        @targetId)""",
+                 new QueryParams()
+                     .add("name",        link.name())
+                     .add("displayName", link.displayName())
+                     .add("sourceId",    lookup.id())
+                     .add("targetId",    loadLookup(link.target().name()).id()));
+      }
+    }
+  }
+
+  public void saveLookupValue(Lookup lookup, LookupValue value) {
+    try (EsqlConnection con = db.esql();
+         Result rs = con.exec("""
+                              select lv._id
+                                from lv:_lookup.LookupValue
+                               where lv.lookup_id=@lookupId
+                                 and lv.code=@code
+                              """,
+                              new QueryParams()
+                                 .add("lookupId", lookup.id())
+                                 .add("code",     value.code()))) {
+
+      UUID valueId;
+      if (rs.toNext()) {
+        valueId = rs.value(1);
+        con.exec("""
+                 update lv
+                   from lv:_lookup.LookupValue
+                    set _version=2,
+                        alt_code1=@altCode1,
+                        alt_code2=@altCode2,
+                        label=@label,
+                        description=@description,
+                        lang=@lang
+                  where _id=@valueId""",
+                 new QueryParams()
+                     .add("valueId",     valueId)
+                     .add("altCode1",    value.altCode1())
+                     .add("altCode2",    value.altCode2())
+                     .add("label",       value.label())
+                     .add("description", value.description())
+                     .add("lang",        value.lang() == null ? "en" : value.lang()));
+        /*
+         * Delete existing value links; new links, if any, will be inserted below.
+         */
+        con.exec("""
+                 delete ln
+                   from ln:_lookup.LookupValueLink
+                  where source_value_id=@valueId""",
+                 new QueryParams().add( "valueId", valueId));
+      } else {
+        valueId = UUID.randomUUID();
+        con.exec("""
+                 insert into _lookup.LookupValue(_id,      _version, lookup_id,  code, alt_code1, alt_code2,  label,  description,  lang)
+                                          values(@valueId, 1,        @lookupId, @code, @altCode1, @altCode2, @label, @description, @lang)""",
+                 new QueryParams()
+                     .add("valueId",     valueId)
+                     .add("lookupId",    lookup.id())
+                     .add("code",        value.code())
+                     .add("altCode1",    value.altCode1())
+                     .add("altCode2",    value.altCode2())
+                     .add("label",       value.label())
+                     .add("description", value.description())
+                     .add("lang",        value.lang() == null ? "en" : value.lang()));
+      }
+      /*
+       * Insert value links
+       */
+      if (value.links() != null) {
+        for (LookupValueLink link: value.links()) {
+          con.exec("""
+                     insert into _lookup.LookupValueLink(_id,     _version, name,  source_value_id, target_value_id)
+                                                  values(newid(), 1,        @name, @sourceId,       @targetId)""",
+                   new QueryParams()
+                       .add("name",     link.name())
+                       .add("sourceId", valueId)
+                       .add("targetId", loadLookupValue(link.target().lookup(), link.target().code()).id()));
+        }
+      }
+    }
+  }
 
   private String schema;
+
+  private Map<String, Lookup> lookupsCache = null;
 
   private Database db;
 

@@ -5,5 +5,4 @@ package ma.vi.esql.lookup;
  */
 public record LookupLink(String name,
                          String displayName,
-                         Lookup source,
                          Lookup target) {}

@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.6.0] - 2022-09-07
+### Added
+- Methods added to `LookupExtension` to load lookups, links and values. 
+- All lookups are loaded and cached on first access. Cache is invalidated when
+  a lookup is created or updated. Changes outside this extension is not detected;
+  this will be implemented when the notification framework is completed and will
+  then automatically invalidate entries irrespective of where the change to the
+  lookups was initiated.
+- Methods to create and update lookups and lookup values added to LookupExtension.
+- `LookupInitializer` to create and update lookup from hierarchical representation,
+  such as in a YAML file.
+
 ## [0.5.3] - 2022-08-12
 ### Added
 - `display_name` added to `Lookup`.
