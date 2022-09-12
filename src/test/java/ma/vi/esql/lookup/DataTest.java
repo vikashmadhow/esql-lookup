@@ -46,12 +46,13 @@ public class DataTest {
             log.log(INFO, "Creating TestSection lookup");
 
             UUID id = UUID.randomUUID();
-            con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(@id, @name, @description)"),
+            con.exec(p.parse("insert into _lookup.Lookup(_id, name, display_name, description) " +
+                                "values(@id, @name, @displayName, @description)"),
                      new QueryParams()
                           .add("id", id.toString())
                           .add("name", "TestSection")
-                          .add("description", "Test Section"));
+                          .add("displayName", "Test section")
+                          .add("description", "Test section"));
 
             con.exec(p.parse("insert into _lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
                                 "(newid(), '" + id + "', 'A', 'en', 'Agriculture forestry and fishing'), " +
@@ -84,11 +85,12 @@ public class DataTest {
             log.log(INFO, "Creating TestDivision lookup");
 
             UUID id = UUID.randomUUID();
-            con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(@id, @name, @description)"),
+            con.exec(p.parse("insert into _lookup.Lookup(_id, name, display_name, description) " +
+                                "values(@id, @name, @displayName, @description)"),
                      new QueryParams()
                       .add("id", id.toString())
                       .add("name", "TestDivision")
+                      .add("displayName", "Test Division")
                       .add("description", "Test Division"));
 
             con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
@@ -292,11 +294,12 @@ public class DataTest {
             log.log(INFO, "Creating TestGroup lookup");
 
             UUID id = UUID.randomUUID();
-            con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(@id, @name, @description)"),
+            con.exec(p.parse("insert into _lookup.Lookup(_id, name, display_name, description) " +
+                                "values(@id, @name, @displayName, @description)"),
                      new QueryParams()
                        .add("id", id.toString())
                        .add("name", "TestGroup")
+                       .add("displayName", "Test group")
                        .add("description", "Test group"));
 
             con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
@@ -591,11 +594,12 @@ public class DataTest {
             log.log(INFO, "Creating TestClass lookup");
 
             UUID id = UUID.randomUUID();
-            con.exec(p.parse("insert into _lookup.Lookup(_id, name, description) " +
-                                "values(@id, @name, @description)"),
+            con.exec(p.parse("insert into _lookup.Lookup(_id, name, display_name, description) " +
+                                "values(@id, @name, @displayName, @description)"),
                      new QueryParams()
                        .add("id", id.toString())
                        .add("name", "TestClass")
+                       .add("displayName", "Test class")
                        .add("description", "Test class"));
 
             con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
@@ -1133,8 +1137,8 @@ public class DataTest {
         try (Result rs = con.exec("select _id from _lookup.Lookup where name='Country'")) {
           if (!rs.toNext()) {
             String countryLookupId = UUID.randomUUID().toString();
-            con.exec("insert into _lookup.Lookup(_id, _can_delete, name, description) " +
-                       "values('" + countryLookupId + "', false, 'Country', 'Countries with their ISO alphabetic code')");
+            con.exec("insert into _lookup.Lookup(_id, _can_delete, name, display_name, description) " +
+                       "values('" + countryLookupId + "', false, 'Country', 'Country', 'Countries with their ISO alphabetic code')");
 
             con.exec("insert into _lookup.LookupValue" +
                        "(_id,     _can_delete, lookup_id,            code, alt_code1, alt_code2, lang, label) values " +

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.6.1] - 2022-09-12
+### Added
+- Methods `loadLookups` in `LookupExtension` returns a list of all loaded lookups.
+- `display_name` in now required for lookups.
+
 ## [0.6.0] - 2022-09-07
 ### Added
 - Methods added to `LookupExtension` to load lookups, links and values. 

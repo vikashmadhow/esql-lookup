@@ -53,7 +53,7 @@ public class LookupExtension implements Extension {
                validate_unique: true,
                mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'
              },
-             display_name string,
+             display_name string not null,
              description  string,
              "group"      string,
 
@@ -448,6 +448,10 @@ public class LookupExtension implements Extension {
     }
   }
 
+  public List<Lookup> loadLookups() {
+    return List.copyOf(lookups().values());
+  }
+
   public Lookup loadLookup(String name) {
     return findLookup(name)
           .orElseThrow(() -> new NotFoundException("Lookup named '" + name + "' not found."));
@@ -605,8 +609,9 @@ public class LookupExtension implements Extension {
   }
 
   public UUID saveLookup(Lookup lookup) {
+    UUID saved = saveLookup(lookup, new HashSet<>());
     lookupsCache = null;
-    return saveLookup(lookup, new HashSet<>());
+    return saved;
   }
 
   private UUID saveLookup(Lookup lookup, Set<UUID> savedLookups) {
@@ -647,7 +652,7 @@ public class LookupExtension implements Extension {
 
           if (lookup.links() != null) {
             for (LookupLink link: lookup.links()) {
-              saveLookupLink(lookup, link);
+              saveLookupLink(lookupId, link);
             }
           }
           con.exec("""
@@ -667,7 +672,7 @@ public class LookupExtension implements Extension {
 
           if (lookup.values() != null) {
             for (LookupValue value: lookup.values().values()) {
-              saveLookupValue(lookup, value);
+              saveLookupValue(lookupId, value);
             }
           }
           con.exec("""
@@ -701,7 +706,7 @@ public class LookupExtension implements Extension {
           }
           if (lookup.values() != null) {
             for (LookupValue value: lookup.values().values()) {
-              saveLookupValue(lookup, value);
+              saveLookupValue(lookupId, value);
 //              con.exec("""
 //                       insert into _lookup.LookupValue(_id,     lookup_id,  code, alt_code1, alt_code2,  label,  description,  lang)
 //                                                values(newid(), @lookupId, @code, @altCode1, @altCode2, @label, @description, @lang)""",
@@ -722,7 +727,7 @@ public class LookupExtension implements Extension {
     return lookup.id();
   }
 
-  public void saveLookupLink(Lookup lookup, LookupLink link) {
+  public void saveLookupLink(UUID lookupId, LookupLink link) {
     try (EsqlConnection con = db.esql();
          Result rs = con.exec("""
                               select ln._id
@@ -732,7 +737,7 @@ public class LookupExtension implements Extension {
                                where ln.name=@linkName
                               """,
                               new QueryParams()
-                                 .add("lookupId", lookup.id())
+                                 .add("lookupId", lookupId)
                                  .add("linkName", link.name()))) {
       if (rs.toNext()) {
         UUID linkId = rs.value(1);
@@ -754,13 +759,13 @@ public class LookupExtension implements Extension {
                  new QueryParams()
                      .add("name",        link.name())
                      .add("displayName", link.displayName())
-                     .add("sourceId",    lookup.id())
+                     .add("sourceId",    lookupId)
                      .add("targetId",    loadLookup(link.target().name()).id()));
       }
     }
   }
 
-  public void saveLookupValue(Lookup lookup, LookupValue value) {
+  public void saveLookupValue(UUID lookupId, LookupValue value) {
     try (EsqlConnection con = db.esql();
          Result rs = con.exec("""
                               select lv._id
@@ -769,7 +774,7 @@ public class LookupExtension implements Extension {
                                  and lv.code=@code
                               """,
                               new QueryParams()
-                                 .add("lookupId", lookup.id())
+                                 .add("lookupId", lookupId)
                                  .add("code",     value.code()))) {
 
       UUID valueId;
@@ -807,7 +812,7 @@ public class LookupExtension implements Extension {
                                           values(@valueId, 1,        @lookupId, @code, @altCode1, @altCode2, @label, @description, @lang)""",
                  new QueryParams()
                      .add("valueId",     valueId)
-                     .add("lookupId",    lookup.id())
+                     .add("lookupId",    lookupId)
                      .add("code",        value.code())
                      .add("altCode1",    value.altCode1())
                      .add("altCode2",    value.altCode2())
