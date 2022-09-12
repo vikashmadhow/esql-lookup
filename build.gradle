@@ -109,16 +109,16 @@ publishing {
   }
 }
 
-signing {
-  sign publishing.publications.mavenJava
-}
-
-tasks.withType(Sign) {
-  onlyIf { isReleaseVersion }
-}
-
-nexusStaging {
-  packageGroup = group
-  username = project.getProperty('ossrhUsername')
-  password = project.getProperty('ossrhPassword')
-}
+//signing {
+//  sign publishing.publications.mavenJava
+//}
+//
+//tasks.withType(Sign) {
+//  onlyIf { isReleaseVersion }
+//}
+//
+//nexusStaging {
+//  packageGroup = group
+//  username = project.getProperty('ossrhUsername')
+//  password = project.getProperty('ossrhPassword')
+//}
