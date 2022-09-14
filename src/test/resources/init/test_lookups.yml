@@ -46,12 +46,8 @@ TestCountry:
   description: Countries
   group: Geography
   links:
-    TestCurrency:
-      displayName: Currency
-      target: TestCurrency
-    TestRegionalGrouping:
-      displayName: Regional grouping
-      target: TestRegionalGrouping
+    - TestCurrency
+    - TestRegionalGrouping
   values:
     - AF,AFG,4,Afghanistan|ALL|SADC
     - AL,ALB,8,Albania|ARS|SADC

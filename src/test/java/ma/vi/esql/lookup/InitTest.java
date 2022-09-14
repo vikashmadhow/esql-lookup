@@ -30,17 +30,13 @@ class InitTest extends DataTest {
                    assertEquals("Geography", lookup.group());
 
                    assertEquals(2, lookup.links().size());
-                   Map<String, LookupLink> linkMap = lookup.links().stream()
-                                                           .collect(Collectors.toMap(LookupLink::name, l -> l));
+                   Map<String, Lookup> linkMap = lookup.links().stream()
+                                                       .collect(Collectors.toMap(Lookup::name, l -> l));
 
-                   assertEquals(new LookupLink(
-                                  "TestCurrency",
-                                  "Currency",
-                                  ext.loadLookup("TestCurrency")), linkMap.get("TestCurrency"));
-                   assertEquals(new LookupLink(
-                                  "TestRegionalGrouping",
-                                  "Regional grouping",
-                                  ext.loadLookup("TestRegionalGrouping")), linkMap.get("TestRegionalGrouping"));
+                   assertEquals(ext.loadLookup("TestCurrency"),
+                                linkMap.get("TestCurrency"));
+                   assertEquals(ext.loadLookup("TestRegionalGrouping"),
+                                linkMap.get("TestRegionalGrouping"));
 
                    System.out.println(lookup.values().values());
                  }));

@@ -80,12 +80,9 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
 public class LookupLabel extends Function implements TypedMacro {
   /**
    * Creates the lookuplabel macro function.
-   * @param schema The database schema in which the lookup tables and functions
-   *               will be created.
    */
-  public LookupLabel(String schema) {
+  public LookupLabel() {
     super("lookuplabel", Types.StringType, emptyList());
-    this.schema = schema;
   }
 
   @Override
@@ -205,8 +202,8 @@ public class LookupLabel extends Function implements TypedMacro {
      * join Lookup l on v0.lookup_id=l._id and l.name=X
      */
     TableExpr from = new JoinTableExpr(ctx, null, false,
-                                       new SingleTableExpr(ctx, schema + ".LookupValue", fromValueAlias),
-                                       new SingleTableExpr(ctx, schema + ".Lookup", lookupAlias),
+                                       new SingleTableExpr(ctx, "_lookup.LookupValue", fromValueAlias),
+                                       new SingleTableExpr(ctx, "_lookup.Lookup", lookupAlias),
                                        new And(ctx,
                                                new Equality(ctx,
                                                             new ColumnRef(ctx, fromValueAlias, "lookup_id"),
@@ -229,7 +226,7 @@ public class LookupLabel extends Function implements TypedMacro {
        * join LookupValue      v1 on lk1.target_value_id=v1._id
        */
       from = new JoinTableExpr(ctx, null, false, from,
-                               new SingleTableExpr(ctx, schema + ".LookupValueLink", toLinkAlias),
+                               new SingleTableExpr(ctx, "_lookup.LookupValueLink", toLinkAlias),
                                new And(ctx,
                                        new Equality(ctx,
                                                     new ColumnRef(ctx, toLinkAlias, "source_value_id"),
@@ -238,7 +235,7 @@ public class LookupLabel extends Function implements TypedMacro {
                                                     new ColumnRef(ctx, toLinkAlias, "name"),
                                                     new StringLiteral(ctx, linkName))));
       from = new JoinTableExpr(ctx, null, false, from,
-                               new SingleTableExpr(ctx, schema + ".LookupValue", toValueAlias),
+                               new SingleTableExpr(ctx, "_lookup.LookupValue", toValueAlias),
                                new Equality(ctx,
                                             new ColumnRef(ctx, toLinkAlias, "target_value_id"),
                                             new ColumnRef(ctx, toValueAlias, "_id")));
@@ -296,12 +293,7 @@ public class LookupLabel extends Function implements TypedMacro {
                                                   Expression<?, ?>      codeSeparator) {
     ColumnRef expr = new ColumnRef(ctx, alias, column);
     return label == null
-         ? expr
-         : new Concatenation(ctx, asList(label, codeSeparator, expr));
+        ? expr
+        : new Concatenation(ctx, asList(label, codeSeparator, expr));
   }
-
-  /**
-   * Configured schema to use for the lookup tables and functions
-   */
-  private final String schema;
 }

@@ -14,7 +14,7 @@ public record Lookup(UUID      id,
                      String    group,
                      String    displayName,
                      String    description,
-                     List<LookupLink>  links,
+                     List<Lookup> links,
                      Map<String, LookupValue> values,
                      Map<UUID,   LookupValue> valuesById) {
 
@@ -22,7 +22,7 @@ public record Lookup(UUID      id,
                 String    group,
                 String    displayName,
                 String    description,
-                List<LookupLink>  links,
+                List<Lookup> links,
                 Map<String, LookupValue> values,
                 Map<UUID,   LookupValue> valuesById) {
     this(UUID.randomUUID(),

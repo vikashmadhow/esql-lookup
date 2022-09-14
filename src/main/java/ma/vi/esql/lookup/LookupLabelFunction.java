@@ -40,14 +40,11 @@ import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 public class LookupLabelFunction extends Function {
   /**
    * Creates the lookuplabelf function.
-   * @param schema The database schema in which the lookup stored function will
-   *               be created.
    */
-  public LookupLabelFunction(String schema) {
+  public LookupLabelFunction() {
     super("lookuplabelf", Types.TextType,
           Arrays.asList(new FunctionParam("code", Types.TextType),
                         new FunctionParam("lookup", Types.TextType)));
-    this.schema = schema;
   }
 
   @Override
@@ -62,7 +59,7 @@ public class LookupLabelFunction extends Function {
     Expression<?, ?> linkTable = args.get(1);
     if (target == POSTGRESQL) {
       StringBuilder func = new StringBuilder(
-          '"' + schema + "\".lookup_label((" +
+          "_lookup.lookup_label((" +
               code.translate(target) + ")::text, (" +
               linkTable.translate(target) + ")::text, ");
       String showCode = "true";
@@ -98,7 +95,7 @@ public class LookupLabelFunction extends Function {
       }
       func.append(')');
       int links = args.size() > 4 ? args.size() - 4 : 0;
-      return '"' + schema + "\".lookup_label" + links + func;
+      return "_lookup.lookup_label" + links + func;
 
     } else {
       StringBuilder func = new StringBuilder(
@@ -121,9 +118,4 @@ public class LookupLabelFunction extends Function {
       return func.toString();
     }
   }
-
-  /**
-   * Configured schema to use for the lookup tables and functions
-   */
-  private final String schema;
 }

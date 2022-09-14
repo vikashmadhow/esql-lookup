@@ -93,8 +93,8 @@ public class DataTest {
                       .add("displayName", "Test Division")
                       .add("description", "Test Division"));
 
-            con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
-                                "values(newid(), 'TestSection', 'Test Section', '" + id + "', " +
+            con.exec(p.parse("insert into _lookup.LookupLink(_id, source_lookup_id, target_lookup_id)" +
+                                "values(newid(), '" + id + "', " +
                                 "       (select _id from _lookup.Lookup where name='TestSection'))"));
 
             con.exec(p.parse("insert into _lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
@@ -302,8 +302,8 @@ public class DataTest {
                        .add("displayName", "Test group")
                        .add("description", "Test group"));
 
-            con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
-                                "values(newid(), 'TestDivision', 'Test division', '" + id + "', " +
+            con.exec(p.parse("insert into _lookup.LookupLink(_id, source_lookup_id, target_lookup_id)" +
+                                "values(newid(), '" + id + "', " +
                                 "       (select _id from _lookup.Lookup where name='TestDivision'))"));
 
             con.exec(p.parse("insert into _lookup.LookupValue(_id, lookup_id, code, lang, label) values" +
@@ -602,8 +602,8 @@ public class DataTest {
                        .add("displayName", "Test class")
                        .add("description", "Test class"));
 
-            con.exec(p.parse("insert into _lookup.LookupLink(_id, name, display_name, source_lookup_id, target_lookup_id)" +
-                                "values(newid(), 'TestGroup', 'Test Group', '" + id + "', " +
+            con.exec(p.parse("insert into _lookup.LookupLink(_id, source_lookup_id, target_lookup_id)" +
+                                "values(newid(), '" + id + "', " +
                                 "       (select _id from _lookup.Lookup where name='TestGroup'))"));
 
             con.exec(p.parse("insert into _lookup.LookupValue(_id, lookup_id, code, lang, label) values" +

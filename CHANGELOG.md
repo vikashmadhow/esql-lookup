@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.7.0] - 2022-09-14
+### Changed
+- Lookup tables are now created in only schema named `_lookup` instead of a custom
+  schema provided as configuration parameter to the extension. The custom schema
+  required additional code in all functions and macros to properly refer to the
+  dynamic schema for very little gain in flexibility.
+- Simplified lookup links using the name and display name of the target lookup
+  in the link, instead of a separate unique link name. This reduces the different
+  names that need to be maintained in a lookup graph.
+
 ## [0.6.1] - 2022-09-12
 ### Added
 - Methods `loadLookups` in `LookupExtension` returns a list of all loaded lookups.

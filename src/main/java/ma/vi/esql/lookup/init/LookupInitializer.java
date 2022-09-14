@@ -3,7 +3,10 @@ package ma.vi.esql.lookup.init;
 import ma.vi.base.collections.ArrayIterator;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.init.Initializer;
-import ma.vi.esql.lookup.*;
+import ma.vi.esql.lookup.Lookup;
+import ma.vi.esql.lookup.LookupExtension;
+import ma.vi.esql.lookup.LookupValue;
+import ma.vi.esql.lookup.LookupValueLink;
 
 import java.util.*;
 
@@ -18,12 +21,8 @@ import java.util.*;
  *     description: Countries
  *     group: Geography
  *     links:
- *       Currency:
- *         displayName: Currency
- *         target: Currency
- *       RegionalGrouping:
- *         displayName: Regional grouping
- *         target: RegionalGrouping
+ *       - Currency
+ *       - RegionalGrouping
  *     values:
  *       -AF,AFG,4,Afghanistan|ALL|SADC
  *       -AL,ALB,8,Albania|ARS|SADC
@@ -56,12 +55,10 @@ public class LookupInitializer implements Initializer<Lookup> {
                             new ArrayList<>(),
                             new HashMap<>(),
                             new HashMap<>());
-      Map<String, Map<String, String>> links = (Map<String, Map<String, String>>)definition.get("links");
+      List<String> links = (List<String>)definition.get("links");
       if (links != null) {
-        for (Map.Entry<String, Map<String, String>> e: links.entrySet()) {
-          existing.links().add(new LookupLink(e.getKey(),
-                                            e.getValue().get("displayName"),
-                                            ext.loadLookup(e.getValue().get("target"))));
+        for (String link: links) {
+          existing.links().add(ext.loadLookup(link));
         }
       }
       List<String> values = (List<String>)definition.get("values");
@@ -124,9 +121,9 @@ public class LookupInitializer implements Initializer<Lookup> {
                                               + existing.name());
             }
             for (int j = 0; j < linkValues.length; j++) {
-              LookupLink linkDef = existing.links().get(j);
+              Lookup linkDef = existing.links().get(j);
               lv.links().add(new LookupValueLink(linkDef.name(),
-                                                 ext.loadLookupValue(linkDef.target().name(),
+                                                 ext.loadLookupValue(linkDef.name(),
                                                                      linkValues[j])));
             }
           }
