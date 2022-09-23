@@ -120,14 +120,21 @@ public class LookupExtension implements Extension {
              primary key(_id),
              foreign key(source_value_id) references _lookup.LookupValue(_id),
              foreign key(target_value_id) references _lookup.LookupValue(_id))""");
+
+      /*
+       * Indexes for optimizing primary search patterns.
+       */
+      c.exec("create index value_code   on _lookup.LookupValue(code)");
+      c.exec("create index value_lookup on _lookup.LookupValue(lookup_id)");
+
+      c.exec("create index link_name    on _lookup.LookupValueLink(name)");
+      c.exec("create index link_source  on _lookup.LookupValueLink(source_value_id)");
+      c.exec("create index link_target  on _lookup.LookupValueLink(target_value_id)");
     }
 
     /*
-     * Lookup macros
+     * Lookup macros and labels functions.
      */
-
-    // labels functions and macros
-    ////////////////////////////////
     Structure structure = db.structure();
     structure.function(new LookupLabelFunction());
     structure.function(new LookupLabel());
@@ -142,9 +149,9 @@ public class LookupExtension implements Extension {
         // lookup label with no links
         c.createStatement().executeUpdate("""
             create or replace function _lookup.lookup_label(code text,
-                                                              lookup text,
-                                                              show_code boolean,
-                                                              show_label boolean) returns text as $$
+                                                            lookup text,
+                                                            show_code boolean,
+                                                            show_label boolean) returns text as $$
                 select case when coalesce(show_code, false)=coalesce(show_label, false)
                             then v.code || ' - ' || v.label
             
@@ -161,10 +168,10 @@ public class LookupExtension implements Extension {
         // lookup label with variable number of links
         c.createStatement().executeUpdate("""
             create or replace function _lookup.lookup_label(code text,
-                                                              lookup text,
-                                                              show_code boolean,
-                                                              show_label boolean,
-                                                              variadic links text[]) returns text as $$
+                                                            lookup text,
+                                                            show_code boolean,
+                                                            show_label boolean,
+                                                            variadic links text[]) returns text as $$
             declare
                 link_name text;
                 link_index int = 0;
@@ -220,9 +227,9 @@ public class LookupExtension implements Extension {
         // function to find value from lookups
         c.createStatement().executeUpdate("""
             create or alter function _lookup.lookup_label0(@Code      nvarchar(max),
-                                                             @Lookup    nvarchar(max),
-                                                             @ShowCode  bit,
-                                                             @ShowLabel bit) returns nvarchar(max) as
+                                                           @Lookup    nvarchar(max),
+                                                           @ShowCode  bit,
+                                                           @ShowLabel bit) returns nvarchar(max) as
             begin
               declare @Result nvarchar(max);
               select @Result=(iif(coalesce(@ShowCode, 0)=coalesce(@ShowLabel, 0),
@@ -238,10 +245,10 @@ public class LookupExtension implements Extension {
 
         c.createStatement().executeUpdate("""
             create or alter function _lookup.lookup_label1(@Code      nvarchar(max),
-                                                             @Lookup    nvarchar(max),
-                                                             @ShowCode  bit,
-                                                             @ShowLabel bit,
-                                                             @Link1     nvarchar(max)) returns nvarchar(max) as
+                                                           @Lookup    nvarchar(max),
+                                                           @ShowCode  bit,
+                                                           @ShowLabel bit,
+                                                           @Link1     nvarchar(max)) returns nvarchar(max) as
             begin
               declare @LinkCursor Cursor;
               declare @Result nvarchar(max);
@@ -264,11 +271,11 @@ public class LookupExtension implements Extension {
 
         c.createStatement().executeUpdate("""
             create or alter function _lookup.lookup_label2(@Code      nvarchar(max),
-                                                             @Lookup    nvarchar(max),
-                                                             @ShowCode  bit,
-                                                             @ShowLabel bit,
-                                                             @Link1     nvarchar(max),
-                                                             @Link2     nvarchar(max)) returns nvarchar(max) as
+                                                           @Lookup    nvarchar(max),
+                                                           @ShowCode  bit,
+                                                           @ShowLabel bit,
+                                                           @Link1     nvarchar(max),
+                                                           @Link2     nvarchar(max)) returns nvarchar(max) as
             begin
               declare @LinkCursor Cursor;
               declare @Result nvarchar(max);
@@ -294,12 +301,12 @@ public class LookupExtension implements Extension {
 
         c.createStatement().executeUpdate("""
             create or alter function _lookup.lookup_label3(@Code      nvarchar(max),
-                                                          @Lookup    nvarchar(max),
-                                                          @ShowCode  bit,
-                                                          @ShowLabel bit,
-                                                          @Link1     nvarchar(max),
-                                                          @Link2     nvarchar(max),
-                                                          @Link3     nvarchar(max)) returns nvarchar(max) as
+                                                           @Lookup    nvarchar(max),
+                                                           @ShowCode  bit,
+                                                           @ShowLabel bit,
+                                                           @Link1     nvarchar(max),
+                                                           @Link2     nvarchar(max),
+                                                           @Link3     nvarchar(max)) returns nvarchar(max) as
             begin
               declare @LinkCursor Cursor;
               declare @Result nvarchar(max);
@@ -328,13 +335,13 @@ public class LookupExtension implements Extension {
 
         c.createStatement().executeUpdate("""
             create or alter function _lookup.lookup_label4(@Code      nvarchar(max),
-                                                          @Lookup    nvarchar(max),
-                                                          @ShowCode  bit,
-                                                          @ShowLabel bit,
-                                                          @Link1     nvarchar(max),
-                                                          @Link2     nvarchar(max),
-                                                          @Link3     nvarchar(max),
-                                                          @Link4     nvarchar(max)) returns nvarchar(max) as
+                                                           @Lookup    nvarchar(max),
+                                                           @ShowCode  bit,
+                                                           @ShowLabel bit,
+                                                           @Link1     nvarchar(max),
+                                                           @Link2     nvarchar(max),
+                                                           @Link3     nvarchar(max),
+                                                           @Link4     nvarchar(max)) returns nvarchar(max) as
             begin
               declare @LinkCursor Cursor;
               declare @Result nvarchar(max);
@@ -366,14 +373,14 @@ public class LookupExtension implements Extension {
 
         c.createStatement().executeUpdate("""
             create or alter function _lookup.lookup_label5(@Code      nvarchar(max),
-                                                          @Lookup    nvarchar(max),
-                                                          @ShowCode  bit,
-                                                          @ShowLabel bit,
-                                                          @Link1     nvarchar(max),
-                                                          @Link2     nvarchar(max),
-                                                          @Link3     nvarchar(max),
-                                                          @Link4     nvarchar(max),
-                                                          @Link5     nvarchar(max)) returns nvarchar(max) as
+                                                           @Lookup    nvarchar(max),
+                                                           @ShowCode  bit,
+                                                           @ShowLabel bit,
+                                                           @Link1     nvarchar(max),
+                                                           @Link2     nvarchar(max),
+                                                           @Link3     nvarchar(max),
+                                                           @Link4     nvarchar(max),
+                                                           @Link5     nvarchar(max)) returns nvarchar(max) as
             begin
               declare @LinkCursor Cursor;
               declare @Result nvarchar(max);

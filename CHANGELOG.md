@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.7.1] - 2022-09-23
+### Added
+- Performance optimizations:
+  - Separate indexes on `name`, `source_value_id` and `target_value_id` columns 
+    of `LookupValueLink` table.
+  - Separate indexes on `code` and `lookup_id` and `target_value_id` columns of 
+    `LookupValue` table.
+  
+### Changed
+- Tests included for searching by a linked code. This now works after the fix
+  in ESQL 1.0.15 which translates select expressions in binary operators correctly.
+
 ## [0.7.0] - 2022-09-14
 ### Changed
 - Lookup tables are now created in only schema named `_lookup` instead of a custom

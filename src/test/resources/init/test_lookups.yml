@@ -1,4 +1,4 @@
-$overwrite$: true
+$overwrite: true
 
 TestAreaType:
   displayName: Area type

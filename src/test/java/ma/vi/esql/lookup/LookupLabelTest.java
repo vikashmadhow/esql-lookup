@@ -165,6 +165,42 @@ class LookupLabelTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> searchByLinkedCode() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   Parser p = new Parser(db.structure());
+                   try (EsqlConnection con = db.esql()) {
+                     con.exec("delete t from t:a.b.LkT");
+                     con.exec("delete s from s:LkS");
+                     con.exec("insert into LkS(_id, a, b, i) values "
+                                  + "(newid(), 1, 0, '0115'),"
+                                  + "(newid(), 2, 9, '0164'),"
+                                  + "(newid(), 3, 8, '0992'),"
+                                  + "(newid(), 4, 7, '1063'),"
+                                  + "(newid(), 5, 6, '1511'),"
+                                  + "(newid(), 6, 5, '2219'),"
+                                  + "(newid(), 7, 4, '2434'),"
+                                  + "(newid(), 8, 3, '3211'),"
+                                  + "(newid(), 9, 2, '4532'),"
+                                  + "(newid(), 0, 1, '5811')");
+
+                     Result rs = con.exec("""
+                                          select a, b, i
+                                            from LkS
+                                           where lookuplabel(i, show_code=true, show_label=false, 'TestClass', 'TestGroup', 'TestDivision', 'TestSection')='A'
+                                           order by a""");
+                     matchResult(rs, Arrays.asList(Map.of("a", "1", "b", 0, "i", "0115"),
+                                                   Map.of("a", "2", "b", 9, "i", "0164")));
+                     // printResult(rs, 20);
+                     // rs.toNext();
+                     // assertEquals("Agriculture forestry and fishing", rs.value(1));
+//                     assertEquals("A - Agriculture forestry and fishing", rs.value(1));
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> lookupMultipleLinkedLabel() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
