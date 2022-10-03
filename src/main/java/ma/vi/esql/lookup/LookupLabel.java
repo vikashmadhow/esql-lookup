@@ -9,6 +9,7 @@ import ma.vi.esql.builder.SelectBuilder;
 import ma.vi.esql.exec.function.Function;
 import ma.vi.esql.exec.function.FunctionCall;
 import ma.vi.esql.exec.function.NamedArgument;
+import ma.vi.esql.semantic.type.ArrayType;
 import ma.vi.esql.semantic.type.Types;
 import ma.vi.esql.syntax.Context;
 import ma.vi.esql.syntax.Esql;
@@ -16,6 +17,7 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.literal.BaseArrayLiteral;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
@@ -163,6 +165,9 @@ public class LookupLabel extends Function implements TypedMacro {
       throw new TranslationException("The name of the lookup table containing the label for the code has not been provided");
     }
 
+    boolean codeIsArray = code instanceof ColumnRef ref && ref.type() instanceof ArrayType
+                       || code instanceof BaseArrayLiteral;
+
     /*
      * lookup table:
      *    lookuplabel('123', X) is transformed to (pseudo-code):
@@ -260,6 +265,15 @@ public class LookupLabel extends Function implements TypedMacro {
                     .from   (from)
                     .orderBy(firstFromValueAlias + '.' + matchBy)
                     .build  ();
+
+    } else if (codeIsArray) {
+      return new SelectExpression(ctx,
+                                  new SelectBuilder(ctx)
+                                       .column(value, "label")
+                                       .from  (from)
+                                       .where (new FunctionCall(ctx, "inarray",
+                                                                List.of(new ColumnRef(ctx, firstFromValueAlias, matchBy), code)))
+                                       .build ());
     } else {
       return new SelectExpression(ctx,
                                   new SelectBuilder(ctx)

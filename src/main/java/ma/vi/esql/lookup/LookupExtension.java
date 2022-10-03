@@ -8,6 +8,7 @@ import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.lookup.function.Classify;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -139,6 +140,7 @@ public class LookupExtension implements Extension {
     structure.function(new LookupLabelFunction());
     structure.function(new LookupLabel());
     structure.function(new JoinLabel());
+    structure.function(new Classify());
 
     /*
      * Create lookup access functions specific to each database (only
