@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
-## [0.7.2] - 2022-09-29
+## [0.7.2] - 2022-10-03
 ### Added
 - `lookuplabel` can now be supplied with an array (or a column of type array) and
   return the labels (or linked labels) for all codes in the array.
