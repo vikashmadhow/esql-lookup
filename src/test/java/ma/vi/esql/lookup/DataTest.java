@@ -6,6 +6,7 @@ package ma.vi.esql.lookup;
 
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
+import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.syntax.Parser;
@@ -1538,16 +1539,21 @@ public class DataTest {
     }
   }
 
-  public static boolean matchResult(Result rs, List<Map<String, Object>> expected) {
+  public static boolean matchResult(Result rs,
+                                    List<Map<String, Object>> expected) {
     int row = 1;
+    List<ColumnMapping> columns = rs.columns();
     for (Map<String, Object> expectedRow: expected) {
       rs.toNext();
-      for (Map.Entry<String, Object> col: expectedRow.entrySet()) {
-        String c = col.getKey();
-        Object expectedVal = col.getValue();
-        Object actualVal = rs.value(c);
-        assertEquals(expectedVal, actualVal,
-                     "Row " + row + ", column " + c + ", expected " + expectedVal + ", got " + actualVal);
+      for (int i = 0; i < columns.size(); i++) {
+        ColumnMapping mapping = columns.get(i);
+        String c = mapping.column().name();
+        if (expectedRow.containsKey(c)) {
+          Object expectedVal = expectedRow.get(c);
+          Object actualVal = rs.value(c);
+          assertEquals(expectedVal, actualVal,
+                       "Row " + row + ", column " + c + ", expected " + expectedVal + ", got " + actualVal);
+        }
       }
       row++;
     }

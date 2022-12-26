@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.7.3] - 2022-10-27
+### Added
+- `labels_offset` and `labels_limit` controls how many labels are to be loaded
+  by `joinlabel` and `lookuplabel` (applies only when the code being searched 
+  is null, which is used to load the whole table of values). This can be used to
+  implement lazy loading as the user scrolls through the list of values.
+
 ## [0.7.2] - 2022-10-03
 ### Added
 - `lookuplabel` can now be supplied with an array (or a column of type array) and

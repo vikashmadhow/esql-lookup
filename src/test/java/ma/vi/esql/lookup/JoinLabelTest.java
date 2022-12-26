@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -109,6 +110,41 @@ public class JoinLabelTest extends DataTest {
                                         "last_to_first=false, label_separator='|')");
                      rs.toNext();
                      assertEquals("B1|A1", rs.value(1));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> multipleJoinLabelOffset() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     con.exec("delete LkX from a.b.LkX");
+                     con.exec("delete LkT from a.b.LkT");
+                     con.exec("delete s from s:LkS");
+
+                     UUID id1 = randomUUID(), id2 = randomUUID();
+                     con.exec("insert into LkS(_id, a, b, e, h, j) values "
+                                  + "(u'" + id1 + "', 'A1', 2, true, ['Four', 'Quatre']text, [1, 2, 3]int),"
+                                  + "(u'" + id2 + "', 'A2', 7, false, ['Nine', 'Neuf', 'X']text, [5, 6, 7, 8]int)");
+
+                     con.exec("insert into a.b.LkT(_id, a, b, s_id) values"
+                                  + "(newid(), 'B1', 2, u'" + id1 + "'), "
+                                  + "(newid(), 'B2', 2, u'" + id2 + "'), "
+                                  + "(newid(), 'B3', 2, u'" + id1 + "'), "
+                                  + "(newid(), 'B4', 2, u'" + id2 + "'), "
+                                  + "(newid(), 'B5', 2, u'" + id1 + "'), "
+                                  + "(newid(), 'B6', 4, u'" + id2 + "')");
+
+                     Result rs = con.exec("joinlabel(null, '_id', 'a', 'a.b.LkT', " +
+                                          "'s_id', '_id', 'a', 'LkS', " +
+                                          "last_to_first=false, label_separator='|', labels_offset=1, labels_limit=3)");
+
+                     matchResult(rs,
+                                 List.of(Map.of("label", "B2|A2"),
+                                         Map.of("label", "B3|A1"),
+                                         Map.of("label", "B4|A2")));
                    }
                  }));
   }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -501,6 +502,25 @@ class LookupLabelTest extends DataTest {
                    try (EsqlConnection con = db.esql()) {
                      Result rs = con.exec("lookuplabel(null, 'TestDivision', 'TestSection', show_code=true)");
                      printResult(rs, 20);
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> getLinkedCodeTableOffsetLimit() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, 'TestDivision', 'TestSection', show_code=true, labels_offset=2, labels_limit=7)");
+                     matchResult(rs, List.of(
+                         Map.of("code", "03", "label", "A - Agriculture forestry and fishing"),
+                         Map.of("code", "05", "label", "B - Mining and quarrying"),
+                         Map.of("code", "06", "label", "B - Mining and quarrying"),
+                         Map.of("code", "07", "label", "B - Mining and quarrying"),
+                         Map.of("code", "08", "label", "B - Mining and quarrying"),
+                         Map.of("code", "09", "label", "B - Mining and quarrying"),
+                         Map.of("code", "10", "label", "C - Manufacturing")));
                    }
                  }));
   }

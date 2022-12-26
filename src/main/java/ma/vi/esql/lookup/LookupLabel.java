@@ -75,6 +75,12 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * <li><b>matching:</b> a criteria to restrict the code-label pairs to load from
  *                      the lookup. Applies only when the code searched is null,
  *                      meaning that the whole lookup is to be loaded.</li>
+ * <li><b>labels_offset:</b> An offset from the start of loaded data from where
+ *                           to start returning labels. Applies only when the code
+ *                           searched is null; can be used to lazily load labels.</li>
+ * <li><b>labels_limit:</b> The number labels to return. Applies only when the
+ *                          code searched is null; can be used to lazily load
+ *                          labels in pages.</li>
  * </ul>
  *
  * @author Vikash Madhow (vikash.madhow@gmail.com)
@@ -123,6 +129,8 @@ public class LookupLabel extends Function implements TypedMacro {
     boolean          lastToFirst     = true;                             // show labels last to first (or first to last if false).
     String           matchBy         = "code";                           // Match by code, alt_code1 or alt_code2. Default is code.
     String           matching        = null;                             // Criteria to restrict code-label pairs to load for whole lookup.
+    Expression<?, ?> offset          = null;                             // Offset labels loading by this number.
+    Expression<?, ?> limit           = null;                             // Limit labels to load to this number.
 
     for (Expression<?, ?> arg: arguments) {
       if (arg instanceof NamedArgument namedArg) {
@@ -136,6 +144,8 @@ public class LookupLabel extends Function implements TypedMacro {
           case "label_separator"  -> labelSeparator  = namedArg.arg();
           case "match_by"         -> matchBy         = getStringParam(namedArg, "match_by", path);
           case "matching"         -> matching        = getStringParam(namedArg, "matching", path);
+          case "labels_offset"    -> offset         = namedArg.arg();
+          case "labels_limit"     -> limit          = namedArg.arg();
           default                 -> throw new TranslationException("""
                                                                    Invalid named argument in lookuplabel: %1s
                                                                    lookuplabel recognises the following named arguments:
@@ -148,6 +158,8 @@ public class LookupLabel extends Function implements TypedMacro {
                                                                    last_to_first: shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.
                                                                    match_by: the code column in LookupValue to match the value to; can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.
                                                                    matching: criteria to restrict code-label pairs to load for whole lookup.
+                                                                   labels_offset: offset labels loading by this number.
+                                                                   labels_limit: limit labels to load to this number.
                                                                    """.formatted(namedArg.name()));
         }
       } else if (code == null) {
@@ -257,6 +269,12 @@ public class LookupLabel extends Function implements TypedMacro {
       if (matching != null) {
         Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching), firstFromValueAlias);
         builder.where(where);
+      }
+      if (offset != null) {
+        builder.offset((Expression<?, String>)offset);
+      }
+      if (limit != null) {
+        builder.limit((Expression<?, String>)limit);
       }
       return builder.column (new ColumnRef(ctx, firstFromValueAlias, matchBy), "code")
                     .column (new ColumnRef(ctx, firstFromValueAlias, "alt_code1"), "alt_code1")
