@@ -17,6 +17,7 @@ import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.comparison.ILike;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.macro.TypedMacro;
@@ -61,13 +62,16 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * <ul>
  * <li><b>show_last_only:</b> Show the last label element in the chain only
  *                            (a -&gt; b -&gt; c, show c only). Default is false.</li>
- * <li><b>label_separator:</b> an expression for the separator between the
+ * <li><b>label_separator:</b> An expression for the separator between the
  *                             labels from different tables. Default is '/'.</li>
  * <li><b>last_to_first:</b> Shows the names from the link tables from the
  *                           last linked table to the first, if true, or otherwise,
  *                           from the first to the last. Default is true.</li>
  * <li><b>matching:</b> A criteria to restrict the code-label pairs to load from
  *                      the lookup. Applies only when the code searched is null.</li>
+ * <li><b>keywords:</b> A string containing keywords that will be used to limit
+ *                      the loaded labels. Applies only when the code searched
+ *                      is null.</li>
  * <li><b>labels_offset:</b> An offset from the start of loaded data from where
  *                           to start returning labels. Applies only when the code
  *                           searched is null; can be used to lazily load labels.</li>
@@ -110,10 +114,11 @@ public class JoinLabel extends Function implements TypedMacro {
      * Load arguments.
      */
     List<Link>       links          = new ArrayList<>();
-    boolean          showLastOnly   = false;                            // show only the last element (last linked foreign table) of the join.
-    Expression<?, ?> labelSeparator = new StringLiteral(ctx, " / ");    // the separator to use between labels from different table (joins).
-    boolean          lastToFirst    = true;                             // show labels last to first (or first to last if false).
+    boolean          showLastOnly   = false;                            // Show only the last element (last linked foreign table) of the join.
+    Expression<?, ?> labelSeparator = new StringLiteral(ctx, " / ");    // The separator to use between labels from different table (joins).
+    boolean          lastToFirst    = true;                             // Show labels last to first (or first to last if false).
     String           matching       = null;                             // Criteria to restrict code-label pairs to load for whole lookup.
+    String           keywords       = null;                             // Keywords that will be used to limit the loaded labels.
     Expression<?, ?> offset         = null;                             // Offset labels loading by this number.
     Expression<?, ?> limit          = null;                             // Limit labels to load to this number.
 
@@ -126,6 +131,7 @@ public class JoinLabel extends Function implements TypedMacro {
           case "last_to_first"   -> lastToFirst    = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator" -> labelSeparator = namedArg.arg();
           case "matching"        -> matching       = getStringParam(namedArg, "matching", path);
+          case "keywords"        -> keywords       = getStringParam(namedArg, "keywords", path);
           case "labels_offset"   -> offset         = namedArg.arg();
           case "labels_limit"    -> limit          = namedArg.arg();
           default                -> throw new TranslationException("Invalid named argument in joinlabel: " + namedArg.name());
@@ -221,6 +227,11 @@ public class JoinLabel extends Function implements TypedMacro {
       if (matching != null) {
         Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching), firstFromAlias);
         builder.where(where);
+      }
+      if (keywords != null && !keywords.trim().isEmpty()) {
+        builder.and(
+          new ILike(ctx, false, value,
+                    new StringLiteral(ctx, "%" + String.join("%", keywords.split("\\W+")) + "%")));
       }
       if (offset != null) {
         builder.offset((Expression<?, String>)offset);

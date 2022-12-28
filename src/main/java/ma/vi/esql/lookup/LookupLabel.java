@@ -17,10 +17,12 @@ import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
+import ma.vi.esql.syntax.expression.comparison.ILike;
 import ma.vi.esql.syntax.expression.literal.BaseArrayLiteral;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.expression.logical.And;
+import ma.vi.esql.syntax.expression.logical.Or;
 import ma.vi.esql.syntax.macro.TypedMacro;
 import ma.vi.esql.syntax.query.JoinTableExpr;
 import ma.vi.esql.syntax.query.QueryUpdate;
@@ -75,6 +77,9 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * <li><b>matching:</b> a criteria to restrict the code-label pairs to load from
  *                      the lookup. Applies only when the code searched is null,
  *                      meaning that the whole lookup is to be loaded.</li>
+ * <li><b>keywords:</b> A string containing keywords that will be used to limit
+ *                      the loaded labels. Applies only when the code searched
+ *                      is null.</li>
  * <li><b>labels_offset:</b> An offset from the start of loaded data from where
  *                           to start returning labels. Applies only when the code
  *                           searched is null; can be used to lazily load labels.</li>
@@ -129,6 +134,7 @@ public class LookupLabel extends Function implements TypedMacro {
     boolean          lastToFirst     = true;                             // show labels last to first (or first to last if false).
     String           matchBy         = "code";                           // Match by code, alt_code1 or alt_code2. Default is code.
     String           matching        = null;                             // Criteria to restrict code-label pairs to load for whole lookup.
+    String           keywords        = null;                             // Keywords that will be used to limit the loaded labels.
     Expression<?, ?> offset          = null;                             // Offset labels loading by this number.
     Expression<?, ?> limit           = null;                             // Limit labels to load to this number.
 
@@ -144,8 +150,9 @@ public class LookupLabel extends Function implements TypedMacro {
           case "label_separator"  -> labelSeparator  = namedArg.arg();
           case "match_by"         -> matchBy         = getStringParam(namedArg, "match_by", path);
           case "matching"         -> matching        = getStringParam(namedArg, "matching", path);
-          case "labels_offset"    -> offset         = namedArg.arg();
-          case "labels_limit"     -> limit          = namedArg.arg();
+          case "keywords"         -> keywords        = getStringParam(namedArg, "keywords", path);
+          case "labels_offset"    -> offset          = namedArg.arg();
+          case "labels_limit"     -> limit           = namedArg.arg();
           default                 -> throw new TranslationException("""
                                                                    Invalid named argument in lookuplabel: %1s
                                                                    lookuplabel recognises the following named arguments:
@@ -158,6 +165,7 @@ public class LookupLabel extends Function implements TypedMacro {
                                                                    last_to_first: shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.
                                                                    match_by: the code column in LookupValue to match the value to; can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.
                                                                    matching: criteria to restrict code-label pairs to load for whole lookup.
+                                                                   keywords: keywords that will be used to limit the loaded labels.
                                                                    labels_offset: offset labels loading by this number.
                                                                    labels_limit: limit labels to load to this number.
                                                                    """.formatted(namedArg.name()));
@@ -269,6 +277,12 @@ public class LookupLabel extends Function implements TypedMacro {
       if (matching != null) {
         Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching), firstFromValueAlias);
         builder.where(where);
+      }
+      if (keywords != null && !keywords.trim().isEmpty()) {
+        StringLiteral match = new StringLiteral(ctx, "%" + String.join("%", keywords.split("\\W+")) + "%");
+        builder.and(new Or(ctx,
+                           new ILike(ctx, false, new ColumnRef(ctx, firstFromValueAlias, matchBy), match),
+                           new ILike(ctx, false, value, match)));
       }
       if (offset != null) {
         builder.offset((Expression<?, String>)offset);
