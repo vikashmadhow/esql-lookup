@@ -507,6 +507,21 @@ class LookupLabelTest extends DataTest {
   }
 
   @TestFactory
+  Stream<DynamicTest> getLinkedCodeTableKeywords() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                     Result rs = con.exec("lookuplabel(null, 'TestDivision', show_code=true, keywords='ini act', labels_limit=7)");
+//                     printResult(rs, 20);
+                     matchResult(rs, List.of(
+                         Map.of("code", "09", "label", "09 - Mining support service activities"),
+                         Map.of("code", "82", "label", "82 - Office administrative, office support and other business support activities")));
+                   }
+                 }));
+  }
+
+  @TestFactory
   Stream<DynamicTest> getLinkedCodeTableOffsetLimit() {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {

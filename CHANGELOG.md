@@ -8,7 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
-## [0.7.3] - 2022-10-27
+## [0.7.4] - 2022-12-28
+### Added
+- `keywords` string parameter in `joinlabel` and `lookuplabel` (applies only when 
+  the code being searched is null, which is used to load the whole table of values)
+  to limit loaded labels to those matching the specified keywords.
+
+## [0.7.3] - 2022-12-27
 ### Added
 - `labels_offset` and `labels_limit` controls how many labels are to be loaded
   by `joinlabel` and `lookuplabel` (applies only when the code being searched 
