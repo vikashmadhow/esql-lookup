@@ -124,7 +124,7 @@ public class LookupInitializer implements Initializer<Lookup> {
               Lookup linkDef = existing.links().get(j);
               lv.links().add(new LookupValueLink(linkDef.name(),
                                                  ext.loadLookupValue(linkDef.name(),
-                                                                     linkValues[j])));
+                                                                     linkValues[j].trim())));
             }
           }
           existing.values().put(lv.code(),   lv);
