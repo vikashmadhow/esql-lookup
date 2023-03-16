@@ -275,7 +275,8 @@ public class LookupLabel extends Function implements TypedMacro {
     if (code instanceof NullLiteral) {
       SelectBuilder builder =  new SelectBuilder(ctx);
       if (matching != null) {
-        Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching), firstFromValueAlias);
+        Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching),
+                                                        firstFromValueAlias, false);
         builder.where(where);
       }
       if (keywords != null && !keywords.trim().isEmpty()) {

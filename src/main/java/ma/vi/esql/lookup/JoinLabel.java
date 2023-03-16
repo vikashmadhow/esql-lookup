@@ -225,7 +225,8 @@ public class JoinLabel extends Function implements TypedMacro {
     if (firstSourceId instanceof NullLiteral) {
       SelectBuilder builder = new SelectBuilder(ctx);
       if (matching != null) {
-        Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching), firstFromAlias);
+        Expression<?, String> where = ColumnRef.qualify(builder.parser.parseExpression(matching),
+                                                        firstFromAlias, false);
         builder.where(where);
       }
       if (keywords != null && !keywords.trim().isEmpty()) {
