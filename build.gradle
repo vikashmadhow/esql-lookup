@@ -19,6 +19,7 @@ plugins {
   id "maven-publish"
   id "signing"
   id 'io.codearte.nexus-staging' version '0.22.0'
+  id "synapticloop.projectFilestatistics" version "1.1.0"
 }
 
 group = 'ma.vi'
@@ -28,6 +29,46 @@ sourceCompatibility = JavaVersion.VERSION_17
 project.ext {
   moduleName = project.group + '.' + project.name
   isReleaseVersion = !version.endsWith("SNAPSHOT")
+}
+
+projectFilestatistics {
+  // the files to include in the generation of the statistics
+  includes = [
+      "src/**/*.*",
+  ]
+
+  // the files to exclude from the generation
+  excludes = [
+      "**/node_modules/*",
+      "**/*.woff*",
+      "**/*.babelrc",
+      "**/*.editorconfig",
+      "**/*.eot",
+      "**/*.eslintignore",
+      "**/*.gif",
+      "**/*.ico",
+      "**/*.interp",
+      "**/*.jpg",
+      "**/*.json",
+      "**/*.keep",
+      "**/*.map",
+      "**/*.orig",
+      "**/*.otf",
+      "**/*.png",
+      "**/*.svg",
+      "**/*.tokens",
+      "**/*.ttf",
+      "**/*.xls*",
+      "**/*.pfx",
+      "**/dist/*"
+  ]
+
+  // the output directory for the generated statistics
+  outputDirectory = "$rootProject.buildDir/docs"
+
+  // if you require to over-ride how single and multi-line comments work, or
+  // need to add in some extensions which aren't built in...
+  // propertyFile = 'over-ride.properties'
 }
 
 java {
