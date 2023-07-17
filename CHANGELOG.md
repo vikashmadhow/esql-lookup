@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.7.7] - 2023-07-17
+### Added
+- Lazily load lookups through the new `lookup(name)` method instead of loading and
+  caching all lookups on first access. This should improve startup performance.
+
 ## [0.7.6] - 2023-03-17
 ### Added
 - Only qualify column references that are not already qualified.

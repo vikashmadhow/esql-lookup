@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.System.Logger.Level.INFO;
+import static java.util.Collections.emptyList;
 import static ma.vi.esql.translation.Translatable.Target.POSTGRESQL;
 import static ma.vi.esql.translation.Translatable.Target.SQLSERVER;
 
@@ -432,7 +433,7 @@ public class LookupExtension implements Extension {
   }
 
   public Optional<Lookup> findLookup(String name) {
-    return Optional.ofNullable(lookups().get(name));
+    return Optional.ofNullable(lookup(name));
   }
 
   public LookupValue loadLookupValue(String lookup,
@@ -457,8 +458,97 @@ public class LookupExtension implements Extension {
   public Optional<LookupValue> findLookupValue(String lookup,
                                                String code,
                                                Lookup.MatchBy matchBy) {
-    return Optional.ofNullable(lookups().get(lookup))
+    return Optional.ofNullable(lookup(lookup))
                    .map(l -> l.mapBy(matchBy).get(code));
+  }
+
+  private record Link(String source,
+                      String target) {}
+
+  private record ValueLink(UUID   source,
+                           String sourceLookup,
+                           String linkName,
+                           String targetLookup,
+                           UUID   target) {}
+
+  private Lookup lookup(String name) {
+    if (this.lookupsCache == null) {
+      this.lookupsCache = new ConcurrentHashMap<>();
+    }
+    return lookupsCache.computeIfAbsent(name, n -> {
+      try (EsqlConnection con = db.esql();
+           Result rs = con.exec("""
+                                select _id,
+                                       "group",
+                                       display_name,
+                                       description
+                                  from _lookup.Lookup
+                                 where name=@name""", new QueryParams().add("name", n))) {
+        if (!rs.toNext()) {
+          return null;
+        }
+        UUID   id          = rs.value(1);
+        String group       = rs.value(2);
+        String displayName = rs.value(3);
+        String description = rs.value(4);
+
+        /*
+         * Load values.
+         */
+        Map<String, LookupValue> values     = new LinkedHashMap<>();
+        Map<UUID,   LookupValue> valuesById = new HashMap<>();
+        try (Result vrs = con.exec("""
+                                   select _id,
+                                          code,
+                                          alt_code1,
+                                          alt_code2,
+                                          label,
+                                          description,
+                                          lang
+                                     from _lookup.LookupValue
+                                    where lookup_id=@id""", new QueryParams().add("id", id))) {
+          while (vrs.toNext()) {
+            LookupValue value = new LookupValue(
+              vrs.value(1),
+              n,
+              vrs.value(2),
+              vrs.value(3),
+              vrs.value(4),
+              vrs.value(5),
+              vrs.value(6),
+              vrs.value(7),
+              emptyList());
+
+            values.put(value.code(),   value);
+            valuesById.put(value.id(), value);
+          }
+        }
+
+        /*
+         * Load linked lookups.
+         */
+        List<Lookup> links = new ArrayList<>();
+        try (Result lrs = con.exec("""
+                                   select lk.name
+                                     from ln:_lookup.LookupLink
+                                     join lk:_lookup.Lookup on lk._id=ln.target_lookup_id
+                                    where ln.source_lookup_id=@id""", new QueryParams().add("id", id))) {
+          while (lrs.toNext()) {
+            links.add(lookup(lrs.value(1)));
+          }
+        }
+
+        return new Lookup(
+          id,
+          n,
+          group,
+          displayName,
+          description,
+          links,
+          values,
+          valuesById);
+      }
+    });
   }
 
   private Map<String, Lookup> lookups() {
@@ -476,8 +566,6 @@ public class LookupExtension implements Extension {
                                   from source:_lookup.Lookup
                              left join   link:_lookup.LookupLink on link.source_lookup_id=source._id
                              left join target:_lookup.Lookup     on target._id=link.target_lookup_id""")) {
-        record Link(String source,
-                    String target) {}
         Map<String, Lookup> lookups = new HashMap<>();
         List<Link> links = new ArrayList<>();
         while (rs.toNext()) {
@@ -526,12 +614,6 @@ public class LookupExtension implements Extension {
                                 left join lk:_lookup.LookupValueLink on lk.source_value_id=sv._id
                                 left join tv:_lookup.LookupValue     on tv._id=lk.target_value_id
                                 left join tl:_lookup.Lookup          on tl._id=tv.lookup_id""")) {
-          record ValueLink(UUID   source,
-                           String sourceLookup,
-                           String linkName,
-                           String targetLookup,
-                           UUID   target) {}
-
           List<ValueLink> valueLinks = new ArrayList<>();
           while (vrs.toNext()) {
             UUID valueId = vrs.value("source_id");
