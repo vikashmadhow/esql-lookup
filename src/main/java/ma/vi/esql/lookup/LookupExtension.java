@@ -475,15 +475,16 @@ public class LookupExtension implements Extension {
     if (this.lookupsCache == null) {
       this.lookupsCache = new ConcurrentHashMap<>();
     }
-    return lookupsCache.computeIfAbsent(name, n -> {
+    if (!lookupsCache.containsKey(name)) {
+      lookupsCache.put(name, new Lookup());
       try (EsqlConnection con = db.esql();
            Result rs = con.exec("""
-                                select _id,
-                                       "group",
-                                       display_name,
-                                       description
-                                  from _lookup.Lookup
-                                 where name=@name""", new QueryParams().add("name", n))) {
+                              select _id,
+                                     "group",
+                                     display_name,
+                                     description
+                                from _lookup.Lookup
+                               where name=@name""", new QueryParams().add("name", name))) {
         if (!rs.toNext()) {
           return null;
         }
@@ -498,26 +499,26 @@ public class LookupExtension implements Extension {
         Map<String, LookupValue> values     = new LinkedHashMap<>();
         Map<UUID,   LookupValue> valuesById = new HashMap<>();
         try (Result vrs = con.exec("""
-                                   select _id,
-                                          code,
-                                          alt_code1,
-                                          alt_code2,
-                                          label,
-                                          description,
-                                          lang
-                                     from _lookup.LookupValue
-                                    where lookup_id=@id""", new QueryParams().add("id", id))) {
+                                 select _id,
+                                        code,
+                                        alt_code1,
+                                        alt_code2,
+                                        label,
+                                        description,
+                                        lang
+                                   from _lookup.LookupValue
+                                  where lookup_id=@id""", new QueryParams().add("id", id))) {
           while (vrs.toNext()) {
             LookupValue value = new LookupValue(
-              vrs.value(1),
-              n,
-              vrs.value(2),
-              vrs.value(3),
-              vrs.value(4),
-              vrs.value(5),
-              vrs.value(6),
-              vrs.value(7),
-              emptyList());
+                    vrs.value(1),
+                    name,
+                    vrs.value(2),
+                    vrs.value(3),
+                    vrs.value(4),
+                    vrs.value(5),
+                    vrs.value(6),
+                    vrs.value(7),
+                    emptyList());
 
             values.put(value.code(),   value);
             valuesById.put(value.id(), value);
@@ -537,18 +538,17 @@ public class LookupExtension implements Extension {
             links.add(lookup(lrs.value(1)));
           }
         }
-
-        return new Lookup(
-          id,
-          n,
-          group,
-          displayName,
-          description,
-          links,
-          values,
-          valuesById);
+        lookupsCache.put(name, new Lookup(id,
+                                          name,
+                                          group,
+                                          displayName,
+                                          description,
+                                          links,
+                                          values,
+                                          valuesById));
       }
-    });
+    }
+    return lookupsCache.get(name);
   }
 
   private Map<String, Lookup> lookups() {

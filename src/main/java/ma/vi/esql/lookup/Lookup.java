@@ -35,6 +35,10 @@ public record Lookup(UUID      id,
          valuesById);
   }
 
+  Lookup() {
+    this(null, null, null, null, null, null, null);
+  }
+
   /**
    * Lookup code to match by
    */

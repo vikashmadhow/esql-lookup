@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.7.8] - 2023-07-19
+### Fixed
+- Corrected `lookup(name)` method which was causing a `Recursive update` exception when
+  loading linked lookups.
+
 ## [0.7.7] - 2023-07-17
 ### Added
 - Lazily load lookups through the new `lookup(name)` method instead of loading and
