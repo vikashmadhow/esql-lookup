@@ -154,21 +154,21 @@ public class LookupLabel extends Function implements TypedMacro {
           case "labels_offset"    -> offset          = namedArg.arg();
           case "labels_limit"     -> limit           = namedArg.arg();
           default                 -> throw new TranslationException("""
-                                                                   Invalid named argument in lookuplabel: %1s
-                                                                   lookuplabel recognises the following named arguments:
-                                                                   show_code: whether to show the code in the label or not. Default is true.
-                                                                   show_label: whether to show the label or not. Default is true.
-                                                                   show_description: whether to show the description or not. Default is false.
-                                                                   code_separator: the separator between the code and text. Default is ' - '
-                                                                   show_last_only: chow the last label element in the chain only (a -> b -> c, show c only). Default is true.
-                                                                   label_separator: the separator between the labels from different lookups. Default is '/'.
-                                                                   last_to_first: shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.
-                                                                   match_by: the code column in LookupValue to match the value to; can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.
-                                                                   matching: criteria to restrict code-label pairs to load for whole lookup.
-                                                                   keywords: keywords that will be used to limit the loaded labels.
-                                                                   labels_offset: offset labels loading by this number.
-                                                                   labels_limit: limit labels to load to this number.
-                                                                   """.formatted(namedArg.name()));
+                                                                    Invalid named argument in lookuplabel: %1s
+                                                                    lookuplabel recognises the following named arguments:
+                                                                    show_code: whether to show the code in the label or not. Default is true.
+                                                                    show_label: whether to show the label or not. Default is true.
+                                                                    show_description: whether to show the description or not. Default is false.
+                                                                    code_separator: the separator between the code and text. Default is ' - '
+                                                                    show_last_only: chow the last label element in the chain only (a -> b -> c, show c only). Default is true.
+                                                                    label_separator: the separator between the labels from different lookups. Default is '/'.
+                                                                    last_to_first: shows the names from the link tables from the last linked table to the first, if true, or otherwise, from the first to the last. Default is true.
+                                                                    match_by: the code column in LookupValue to match the value to; can be 'code', 'alt_code1' or 'alt_code2'. Default is 'code'.
+                                                                    matching: criteria to restrict code-label pairs to load for whole lookup.
+                                                                    keywords: keywords that will be used to limit the loaded labels.
+                                                                    labels_offset: offset labels loading by this number.
+                                                                    labels_limit: limit labels to load to this number.
+                                                                    """.formatted(namedArg.name()));
         }
       } else if (code == null) {
         code = arg;

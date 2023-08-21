@@ -60,6 +60,7 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * joinlabel can have the following optional named arguments to control the
  * value displayed:
  * <ul>
+ * <li><b>show_code:</b> whether to show the code in the label. Default is false.</li>
  * <li><b>show_last_only:</b> Show the last label element in the chain only
  *                            (a -&gt; b -&gt; c, show c only). Default is false.</li>
  * <li><b>label_separator:</b> An expression for the separator between the
@@ -114,6 +115,7 @@ public class JoinLabel extends Function implements TypedMacro {
      * Load arguments.
      */
     List<Link>       links          = new ArrayList<>();
+    boolean          showCode       = false;                            // show the code or not.
     boolean          showLastOnly   = false;                            // Show only the last element (last linked foreign table) of the join.
     Expression<?, ?> labelSeparator = new StringLiteral(ctx, " / ");    // The separator to use between labels from different table (joins).
     boolean          lastToFirst    = true;                             // Show labels last to first (or first to last if false).
@@ -127,6 +129,7 @@ public class JoinLabel extends Function implements TypedMacro {
       Expression<?, ?> arg = i.next();
       if (arg instanceof NamedArgument namedArg) {
         switch (namedArg.name()) {
+          case "show_code"       -> showCode       = getBooleanParam(namedArg, "show_code", path);
           case "show_last_only"  -> showLastOnly   = getBooleanParam(namedArg, "show_last_only", path);
           case "last_to_first"   -> lastToFirst    = getBooleanParam(namedArg, "last_to_first", path);
           case "label_separator" -> labelSeparator = namedArg.arg();
@@ -230,9 +233,11 @@ public class JoinLabel extends Function implements TypedMacro {
         builder.where(where);
       }
       if (keywords != null && !keywords.trim().isEmpty()) {
-        builder.and(
-          new ILike(ctx, false, value,
-                    new StringLiteral(ctx, "%" + String.join("%", keywords.split("\\W+")) + "%")));
+        var match = "%" + String.join("%", keywords.split("\\W+")) + "%";
+        builder.and(new ILike(ctx, false, value, new StringLiteral(ctx, match)));
+        if (showCode) {
+          builder.or(new ILike(ctx, false, firstTargetId, new StringLiteral(ctx, match)));
+        }
       }
       if (offset != null) {
         builder.offset((Expression<?, String>)offset);

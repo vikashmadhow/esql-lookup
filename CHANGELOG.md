@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.7.9] - 2023-08-21
+### Added
+- `show_code` in `joinlabel` allows joined labels to be searched by codes.
+
 ## [0.7.8] - 2023-07-19
 ### Fixed
 - Corrected `lookup(name)` method which was causing a `Recursive update` exception when
