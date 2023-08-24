@@ -20,7 +20,7 @@ class InitTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
-                   new LookupInitializer().add(db, InitTest.class.getResourceAsStream("/init/test_lookups.yml"));
+                   new LookupInitializer().add(db, "/init/test_lookups.yml", InitTest.class.getResourceAsStream("/init/test_lookups.yml"));
 
                    LookupExtension ext = db.extension(LookupExtension.class);
                    Lookup lookup = ext.loadLookup("TestCountry");
