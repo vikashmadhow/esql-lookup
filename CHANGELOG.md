@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.8.0] - 2023-09-04
+### Added
+- Join label excludes null codes or labels.
+- Join label removes duplicates from link table.
+
 ## [0.7.10] - 2023-08-24
 ### Added
 - Support for incremental initialisation of lookups.

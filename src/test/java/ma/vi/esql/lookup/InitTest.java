@@ -1,5 +1,6 @@
 package ma.vi.esql.lookup;
 
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.lookup.init.LookupInitializer;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -20,6 +21,9 @@ class InitTest extends DataTest {
     return Stream.of(databases)
                  .map(db -> dynamicTest(db.target().toString(), () -> {
                    System.out.println(db.target());
+                   try (EsqlConnection con = db.esql()) {
+                       con.exec("delete r from r:_core.resource");
+                   }
                    new LookupInitializer().add(db, "/init/test_lookups.yml", InitTest.class.getResourceAsStream("/init/test_lookups.yml"));
 
                    LookupExtension ext = db.extension(LookupExtension.class);

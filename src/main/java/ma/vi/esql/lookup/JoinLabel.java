@@ -18,6 +18,7 @@ import ma.vi.esql.syntax.define.Define;
 import ma.vi.esql.syntax.expression.*;
 import ma.vi.esql.syntax.expression.comparison.Equality;
 import ma.vi.esql.syntax.expression.comparison.ILike;
+import ma.vi.esql.syntax.expression.comparison.IsNull;
 import ma.vi.esql.syntax.expression.literal.NullLiteral;
 import ma.vi.esql.syntax.expression.literal.StringLiteral;
 import ma.vi.esql.syntax.macro.TypedMacro;
@@ -245,11 +246,14 @@ public class JoinLabel extends Function implements TypedMacro {
       if (limit != null) {
         builder.limit((Expression<?, String>)limit);
       }
-      return builder.column (firstTargetId, "code")
-                    .column (value, "label")
-                    .from   (from)
-                    .orderBy("2")
-                    .build  ();
+      return builder.distinct(true)
+                    .column  (firstTargetId, "code")
+                    .column  (value,         "label")
+                    .from    (from)
+                    .and     (new IsNull(ctx, true, firstTargetId))
+                    .and     (new IsNull(ctx, true, value))
+                    .orderBy ("2")
+                    .build   ();
     } else {
       return new SelectExpression(ctx,
                                   new SelectBuilder(ctx).column(value, "label")
