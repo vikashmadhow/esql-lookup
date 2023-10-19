@@ -486,6 +486,7 @@ public class LookupExtension implements Extension {
                                 from _lookup.Lookup
                                where name=@name""", new QueryParams().add("name", name))) {
         if (!rs.toNext()) {
+          lookupsCache.remove(name);
           return null;
         }
         UUID   id          = rs.value(1);

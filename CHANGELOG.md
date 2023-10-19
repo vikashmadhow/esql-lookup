@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.8.1] - 2023-10-19
+### Fixed
+- Fixed loading of lookups where the lookup does not exist; the lookups cache
+  would be erroneously set to an empty lookup (to prevent infinite loops during
+  load) if the lookup does not exist; the cache should not have any entry in 
+  such cases.
+
 ## [0.8.0] - 2023-09-04
 ### Added
 - Join label excludes null codes or labels.
