@@ -23,7 +23,7 @@ plugins {
 }
 
 group = 'ma.vi'
-version "0.8.1"
+version "0.9.0"
 sourceCompatibility = JavaVersion.VERSION_17
 
 project.ext {
@@ -90,6 +90,8 @@ repositories {
 
 dependencies {
   implementation("ma.vi:esql:latest.release")
+  implementation("ma.vi:esql-etl:latest.release")
+  implementation("ma.vi:esql-compute:latest.release")
 
   // Use JUnit test framework
   testImplementation(platform('org.junit:junit-bom:5.8.2'))

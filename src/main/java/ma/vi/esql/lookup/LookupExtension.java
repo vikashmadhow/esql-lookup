@@ -2,13 +2,23 @@ package ma.vi.esql.lookup;
 
 import ma.vi.base.config.Configuration;
 import ma.vi.base.lang.NotFoundException;
+import ma.vi.datalines.Format;
+import ma.vi.esql.builder.Attr;
+import ma.vi.esql.builder.CreateStructBuilder;
+import ma.vi.esql.compute.ComputeExtension;
+import ma.vi.esql.compute.Function;
+import ma.vi.esql.compute.Process;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.database.Extension;
 import ma.vi.esql.database.Structure;
+import ma.vi.esql.etl.CopyTo;
+import ma.vi.esql.etl.EtlExtension;
+import ma.vi.esql.etl.Import;
 import ma.vi.esql.exec.QueryParams;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.lookup.function.Classify;
+import ma.vi.esql.syntax.Context;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -35,7 +45,15 @@ public class LookupExtension implements Extension {
       c.exec("""
              create table _lookup.Lookup drop undefined({
                name: 'Lookup',
-               description: 'A named table of values'
+               description: 'A named table of values',
+               children: {
+                 links: {
+                   _type:       '_lookup.LookupLink',
+                   link_column: 'source_lookup_id',
+                   "sequence":  '_seq',
+                   compact:     true
+                 }
+               }
              }
 
              _id         uuid not null,
@@ -44,11 +62,11 @@ public class LookupExtension implements Extension {
              _can_edit   bool not null default true,
 
              name string not null {
-               mask: 'Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii'
+               mask: 'AXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
              },
-             display_name string not null,
-             description  string,
+             display_name string not null { span: 2 },
              "group"      string,
+             description  text            { span: 2 },
 
              primary key(_id),
              unique(name))""");
@@ -64,14 +82,16 @@ public class LookupExtension implements Extension {
              _can_delete bool not null default true,
              _can_edit   bool not null default true,
     
-             source_lookup_id uuid not null { show: false },
+             source_lookup_id uuid not null { hide: true },
     
              target_lookup_id uuid not null {
-               link_table:   '_lookup.Lookup',
-               link_code:    '_id',
-               link_label:   'name'
+               link_table: '_lookup.Lookup',
+               link_code:  '_id',
+               link_label: 'display_name'
              },
     
+             _seq int default 1,
+            
              primary key(_id),
              foreign key(source_lookup_id) references _lookup.Lookup(_id),
              foreign key(target_lookup_id) references _lookup.Lookup(_id))""");
@@ -87,7 +107,7 @@ public class LookupExtension implements Extension {
              _can_delete bool not null default true,
              _can_edit   bool not null default true,
 
-             lookup_id   uuid not null { show: false },
+             lookup_id   uuid not null { hide: true },
              
              code        string not null,
              alt_code1   string,
@@ -756,10 +776,64 @@ public class LookupExtension implements Extension {
             }
           }
         }
+
+        saveLookupImport(lookup);
         return lookupId;
       }
     }
     return lookup.id();
+  }
+
+  /**
+   * Create or update an import for the lookup.
+   */
+  private void saveLookupImport(Lookup lookup) {
+    try (EsqlConnection con = db.esql()) {
+      String importName = "Lookup" + lookup.name() + "ImportStructure";
+      CreateStructBuilder builder = new CreateStructBuilder(new Context(db.structure()));
+      builder.name  (importName)
+             .column("code",  "string", Attr.of("location", "'1'"), Attr.of("required", "true"))
+             .column("label", "string", Attr.of("location", "'2'"), Attr.of("required", "true"));
+      int i = 0;
+      for (Lookup link: lookup.links()) {
+        builder.column("link" + i,
+                       "string",
+                       Attr.of("location", "'" + (i + 3) + "'"),
+                       Attr.of("required", "true"),
+                       Attr.of("label",    "'" + link.displayName() + "'"),
+                       Attr.of("lookup",   "'" + link.name() + "'"));
+        i++;
+      }
+      con.exec(builder.build());
+
+      String transformName = "Lookup" + lookup.name() + "ImportTransform";
+      Process transform = new Process(transformName,
+                                      "Transform for importing lookup " + lookup.name(),
+                                      "Transform for importing lookup " + lookup.name(),
+                                      "etl");
+      ComputeExtension compute = db.extension(ComputeExtension.class);
+      compute.createSequentialProcess(transform,
+                                      new Function.Call("Trim"),
+                                      new Function.Call("Compute"),
+                                      new Function.Call("Validate"),
+                                      new Function.Call("TransferLookup"),
+                                      new Function.Call("DeleteValid"));
+      Import imp = new Import("Lookup" + lookup.name() + "Import",
+                              lookup.displayName(),
+                              "Import for lookup " + lookup.name(),
+                              false,
+                              lookup.name(),
+                              null,
+                              null,
+                              new CopyTo[0],
+                              new Format(),
+                              db.structure().struct(importName),
+                              null,
+                              null,
+                              transformName);
+      EtlExtension etl = db.extension(EtlExtension.class);
+      etl.saveImport(imp);
+    }
   }
 
   public void saveLookupLink(UUID lookupId, Lookup link) {

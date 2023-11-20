@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.9.0] - 2023-11-19
+### Added
+- Automatic creation of an ETL import to populate and update the contents of
+  a lookup.
+
 ## [0.8.1] - 2023-10-19
 ### Fixed
 - Fixed loading of lookups where the lookup does not exist; the lookups cache
