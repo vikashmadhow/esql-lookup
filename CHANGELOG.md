@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.9.1] - 2023-11-20
+### Added
+- Method `saveLookupImport` in `LookupExtension` has been made public so that
+  it may be invoked by other libraries to manually create an import for a
+  lookup. This is needed when the lookup is created manually instead of through
+  the `LookupInitializer`.
+
 ## [0.9.0] - 2023-11-19
 ### Added
 - Automatic creation of an ETL import to populate and update the contents of

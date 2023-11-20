@@ -787,7 +787,7 @@ public class LookupExtension implements Extension {
   /**
    * Create or update an import for the lookup.
    */
-  private void saveLookupImport(Lookup lookup) {
+  public void saveLookupImport(Lookup lookup) {
     try (EsqlConnection con = db.esql()) {
       String importName = "Lookup" + lookup.name() + "ImportStructure";
       CreateStructBuilder builder = new CreateStructBuilder(new Context(db.structure()));
