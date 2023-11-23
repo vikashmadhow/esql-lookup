@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [0.9.2] - 2023-11-23
+### Added
+- `build.grade` updated to be compatible with Gradle version 8.
+
 ## [0.9.1] - 2023-11-20
 ### Added
 - Method `saveLookupImport` in `LookupExtension` has been made public so that
