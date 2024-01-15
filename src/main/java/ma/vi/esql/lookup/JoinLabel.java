@@ -80,6 +80,7 @@ import static ma.vi.esql.translation.Translatable.Target.ESQL;
  * <li><b>labels_limit:</b> The number labels to return. Applies only when the
  *                          code searched is null; can be used to lazily load
  *                          labels in pages.</li>
+ * <li><b>notfiltered:</b> Disable automatic security filtering. Default is false.</li>
  * </ul>
  * @author Vikash Madhow (vikash.madhow@gmail.com)
  */
@@ -124,6 +125,7 @@ public class JoinLabel extends Function implements TypedMacro {
     String           keywords       = null;                             // Keywords that will be used to limit the loaded labels.
     Expression<?, ?> offset         = null;                             // Offset labels loading by this number.
     Expression<?, ?> limit          = null;                             // Limit labels to load to this number.
+    boolean          unfiltered     = false;                            // Enable or disable automatic security filtering. default is false.
 
     Iterator<Expression<?, ?>> i = arguments.iterator();
     while (i.hasNext()) {
@@ -138,6 +140,7 @@ public class JoinLabel extends Function implements TypedMacro {
           case "keywords"        -> keywords       = getStringParam(namedArg, "keywords", path);
           case "labels_offset"   -> offset         = namedArg.arg();
           case "labels_limit"    -> limit          = namedArg.arg();
+          case "notfiltered"     -> unfiltered     = getBooleanParam(namedArg, "notfiltered", path);
           default                -> throw new TranslationException("Invalid named argument in joinlabel: " + namedArg.name());
         }
       } else {
@@ -247,6 +250,7 @@ public class JoinLabel extends Function implements TypedMacro {
         builder.limit((Expression<?, String>)limit);
       }
       return builder.distinct(true)
+                    .unfiltered(unfiltered)
                     .column  (firstTargetId, "code")
                     .column  (value,         "label")
                     .from    (from)
@@ -256,7 +260,8 @@ public class JoinLabel extends Function implements TypedMacro {
                     .build   ();
     } else {
       return new SelectExpression(ctx,
-                                  new SelectBuilder(ctx).column(value, "label")
+                                  new SelectBuilder(ctx).unfiltered(unfiltered)
+                                                        .column(value, "label")
                                                         .from  (from)
                                                         .where (new Equality(ctx, firstTargetId, firstSourceId))
                                                         .build ());

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [1.0.0] - 2024-01-14
+### Added
+- `notfiltered` name parameter accepted by `joinlabel` to bypass automatic
+  security filtering where required.
+
 ## [0.9.2] - 2023-11-23
 ### Added
 - `build.grade` updated to be compatible with Gradle version 8.

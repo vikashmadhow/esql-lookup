@@ -443,6 +443,11 @@ public class LookupExtension implements Extension {
     }
   }
 
+  @Override
+  public Map<Class<? extends Extension>, Configuration> dependsOn() {
+    return Map.of(EtlExtension.class, Configuration.EMPTY);
+  }
+
   public List<Lookup> loadLookups() {
     return List.copyOf(lookups().values());
   }

@@ -28,7 +28,7 @@ repositories {
 }
 
 group = 'ma.vi'
-version "0.9.2"
+version "1.0.0"
 
 project.ext {
   moduleName = project.group + '.' + project.name
