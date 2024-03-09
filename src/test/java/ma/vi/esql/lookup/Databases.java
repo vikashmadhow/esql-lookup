@@ -5,11 +5,9 @@
 package ma.vi.esql.lookup;
 
 import ma.vi.base.config.Configuration;
-import ma.vi.esql.compute.ComputeExtension;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Postgresql;
 import ma.vi.esql.database.SqlServer;
-import ma.vi.esql.etl.EtlExtension;
 
 import java.util.Map;
 
@@ -25,9 +23,7 @@ public class Databases {
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_lookup"),
-                                       ComputeExtension.class, Configuration.EMPTY,
-                                       EtlExtension.class, Configuration.EMPTY)));
+          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_lookup"))));
 //          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.of("schema", "_platform.lookup"))));
     }
     return postgresql;
@@ -39,9 +35,7 @@ public class Databases {
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
           CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.EMPTY,
-                                       ComputeExtension.class, Configuration.EMPTY,
-                                       EtlExtension.class, Configuration.EMPTY)));
+          CONFIG_DB_EXTENSIONS, Map.of(LookupExtension.class, Configuration.EMPTY)));
     }
     return sqlServer;
   }

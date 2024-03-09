@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Virtual tables allowing lookups with links to be queried and updated as a 
   single table.
 
+## [1.0.1] - 2024-03-09 (Deprecated)
+### Extension is being deprecated with functionality moved to the ESQL and ESQL-ETL
+
 ## [1.0.0] - 2024-01-14
 ### Added
 - `notfiltered` name parameter accepted by `joinlabel` to bypass automatic

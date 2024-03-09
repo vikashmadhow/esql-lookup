@@ -28,7 +28,7 @@ repositories {
 }
 
 group = 'ma.vi'
-version "1.0.0"
+version "1.0.1"
 
 project.ext {
   moduleName = project.group + '.' + project.name
@@ -36,7 +36,7 @@ project.ext {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_17
+//  sourceCompatibility = JavaVersion.VERSION_17
   withJavadocJar()
   withSourcesJar()
 }
@@ -50,8 +50,8 @@ jar {
 
 dependencies {
   implementation("ma.vi:esql:latest.release")
-  implementation("ma.vi:esql-etl:latest.release")
-  implementation("ma.vi:esql-compute:latest.release")
+//  implementation("ma.vi:esql-etl:latest.release")
+//  implementation("ma.vi:esql-compute:latest.release")
 
   // Use JUnit test framework
   testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
@@ -147,7 +147,7 @@ projectFilestatistics {
   ]
 
   // the output directory for the generated statistics
-  outputDirectory = "$rootProject.buildDir/docs"
+  outputDirectory = "$layout.buildDirectory/docs"
 
   // if you require to over-ride how single and multi-line comments work, or
   // need to add in some extensions which aren't built in...
