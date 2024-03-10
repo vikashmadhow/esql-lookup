@@ -147,7 +147,7 @@ projectFilestatistics {
   ]
 
   // the output directory for the generated statistics
-  outputDirectory = "$layout.buildDirectory/docs"
+  outputDirectory = layout.buildDirectory.dir("docs").get()
 
   // if you require to over-ride how single and multi-line comments work, or
   // need to add in some extensions which aren't built in...
